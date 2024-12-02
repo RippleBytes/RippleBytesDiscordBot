@@ -1,0 +1,41 @@
+services:
+  web:
+    image: ghcr.io/ripplebytes/ripplebytes_discord_bot:latest
+    container_name: discord_office_app
+    command: gunicorn RippleBytesDiscordBot.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - static_data:/app/static
+    ports:
+      - "8005:8000"
+    depends_on:
+      - db
+
+  bot:
+    image: ghcr.io/ripplebytes/ripplebytes_discord_bot:latest
+    container_name: discord_office_bot
+    command: python manage.py runbot
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - static_data:/app/static
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
+  static_data:
