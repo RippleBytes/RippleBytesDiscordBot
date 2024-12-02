@@ -1,7 +1,3 @@
-Here’s a complete **README.md** for your Django-based Discord bot project with Docker Compose setup:
-
----
-
 # **RippleBytes Discord Bot**
 
 This project is a Django-based Discord bot designed to handle user check-ins, check-outs, break management, and task tracking. It includes database integration (PostgreSQL) and is ready for production deployment using Docker Compose.
@@ -184,12 +180,3 @@ docker-compose down
 
 ## **Contributing**
 Feel free to submit issues or pull requests to improve this project.
-
----
-
-## **License**
-This project is licensed under the MIT License.
-
---- 
-
-Let me know if you need any adjustments!
