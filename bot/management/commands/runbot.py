@@ -1,14 +1,45 @@
 import discord
 from discord.ext import commands
 from django.core.management.base import BaseCommand
-from bot.models import CheckinRecord, TaskRecord, BreakRecord
+from bot.models import CheckinRecord, TaskRecord, BreakRecord,LeaveRequest
 from django.utils.timezone import now
 from django.db import transaction
 from asgiref.sync import sync_to_async
 import traceback
+from datetime import datetime
+from enum import Enum
+from datetime import datetime
+import pytz
 
+
+
+def time_converter(utc_time: datetime):
+
+    if utc_time.tzinfo is None:
+        utc_timezone = pytz.timezone('UTC')
+        utc_time = utc_timezone.localize(utc_time)
+
+    
+    kathmandu_timezone = pytz.timezone('Asia/Kathmandu')
+    kathmandu_time = utc_time.astimezone(kathmandu_timezone)
+    
+
+    format="%Y-%m-%d %H:%M:%S"
+   
+    formatted_time = kathmandu_time.strftime(format)  
+    return formatted_time
 from django.conf import settings
 DISCORD_TOKEN = settings.DISCORD_TOKEN
+
+class LeaveRequestStatus(Enum):
+    requested='Requested',
+    rejected='Rejected',
+    approved='Approved'
+    
+    def __str__(self):
+        return self.value
+    
+
 
 class CheckinModal(discord.ui.Modal, title="Check-in Tasks"):
     tasks = discord.ui.TextInput(
@@ -48,7 +79,7 @@ class CheckinModal(discord.ui.Modal, title="Check-in Tasks"):
                 color=discord.Color.green()
             )
             embed.set_author(name=self.user.name)
-            embed.add_field(name="Checkin Time (UTC)", value=checkin_record.checkin_time, inline=False)
+            embed.add_field(name="Checkin Time", value=time_converter(checkin_record.checkin_time), inline=False)
             await interaction.channel.send(embed=embed)
 
             await interaction.response.send_message(
@@ -93,7 +124,7 @@ class BreakModal(discord.ui.Modal, title="Start Break"):
                 color=discord.Color.yellow()
             )
             embed.set_author(name=self.user.name)
-            embed.add_field(name="Break Taken Time (UTC)", value=break_record.start_time, inline=False)
+            embed.add_field(name="Break Taken Time", value=time_converter(break_record.start_time), inline=False)
             await interaction.channel.send(embed=embed)
 
             await interaction.response.send_message(
@@ -161,7 +192,7 @@ class CheckoutModal(discord.ui.Modal, title="Checkout"):
             )
             embed.set_author(name=self.user.name)
             embed.add_field(name="Additional Task Completed", value=self.additional_tasks.value, inline=False)
-            embed.add_field(name="Checkout Time (UTC)", value=self.checkin_record.checkout_time, inline=False)
+            embed.add_field(name="Checkout Time", value=time_converter(self.checkin_record.checkout_time), inline=False)
             await interaction.channel.send(embed=embed)
 
             await interaction.response.send_message(
@@ -172,6 +203,68 @@ class CheckoutModal(discord.ui.Modal, title="Checkout"):
             traceback.print_exc()
             await interaction.response.send_message(
                 "❌ Checkout failed! Please ensure task names are correct and try again.",
+                ephemeral=True
+            )
+
+class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
+    reason=discord.ui.TextInput(
+        style=discord.TextStyle.paragraph,
+        label='Request leave',
+        required=True,
+        placeholder='State the reason of leave',
+        max_length=100,
+    )
+
+    month=discord.ui.Select(
+
+    )
+    start_date=discord.ui.TextInput(
+        style=discord.TextStyle.paragraph,
+        label='Start Date(YYYY-MM-DD)',
+        required=True,
+        placeholder='Enter the starting date of leave'
+    )
+
+
+    end_date=discord.ui.TextInput(
+        style=discord.TextStyle.paragraph,
+        label='End Date(YYYY-MM-DD)',
+        required=True,
+        placeholder='Enter the ending date of leave'
+    )
+
+    def __init__(self,user):
+        super().__init__()
+        self.user=user
+
+    async def on_submit(self, interaction:discord.Interaction):
+        reason_input=self.reason.value.strip()
+        try:
+            leave_request=await sync_to_async(LeaveRequest.objects.create)(
+                user_id=self.user.id,
+                username=self.user.name,
+                start_date=self.user.start_date,
+                end_date=self.user.end_date
+            )
+            embed=discord.Embed(
+                title="Leave request",
+                color=discord.Color.orange,
+                description=self.reason.value
+            )
+
+            
+            embed.set_author(name=self.user.name)
+            embed.add_field(name='Leave request starting from' , value=leave_request.start_date,inline=False)
+            await interaction.channel.send(embed=embed)
+
+
+            await interaction.response.send_message(
+                "✅ Leave request sent successfully!",
+            )
+        except:
+            traceback.print_exc()
+            await interaction.response.send_message(
+                "❌ Failed to initiate a request ! Please try again.",
                 ephemeral=True
             )
 
@@ -189,6 +282,7 @@ class Command(BaseCommand):
         async def on_ready():
             self.stdout.write(self.style.SUCCESS(f'Logged in as {bot.user} (ID: {bot.user.id})'))
             await bot.tree.sync()
+           
             self.stdout.write(self.style.SUCCESS("Bot is ready and commands are synced."))
 
         @bot.tree.command(name="checkin", description="Start your check-in by entering your tasks.")
@@ -204,6 +298,29 @@ class Command(BaseCommand):
             else:
                 modal = CheckinModal(interaction.user)
                 await interaction.response.send_modal(modal)
+        
+
+        #create slash commands
+        @bot.tree.command(name='leave_request',description="Send a leave request to admin")
+        async def take_leave(interaction:discord.Interaction):
+            print("work")
+            leave_request= await LeaveRequest.objects.filter(
+                
+                user_id=str(interaction.user.id), status=(LeaveRequestStatus.rejected.value or LeaveRequestStatus.requested.value)
+            ).afirst()
+            print(1)
+            if leave_request:
+                print(2)
+                await interaction.response.send_message(
+                    "❌ New request initiaion can only be done after completion of previous. Please contact admin.",
+                    ephemeral=True
+                )
+            else:
+                print(3)
+                modal=LeaveRequestModal(interaction.user)
+                await interaction.response.send_modal(modal)
+
+
 
         @bot.tree.command(name="checkout", description="Checkout by marking completed tasks and adding any additional tasks.")
         async def checkout(interaction: discord.Interaction):
@@ -279,7 +396,7 @@ class Command(BaseCommand):
                             color=discord.Color.green()
                         )
                         embed.set_author(name=interaction.user.name)
-                        embed.add_field(name="Break End Time (UTC)", value=ongoing_break.end_time, inline=False)
+                        embed.add_field(name="Break End Time", value=time_converter(ongoing_break.end_time), inline=False)
                         await interaction.channel.send(embed=embed)
 
                         await interaction.response.send_message(
