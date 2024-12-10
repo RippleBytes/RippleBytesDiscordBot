@@ -1,8 +1,20 @@
 from django import forms
 from .models import LeaveRequest
+leave_status=[
+        ('Requested','Requested'),
+        ('Approved','Approved'),
+        ('Rejected','Rejected')
+    ]
 
-
-class Leaveapprovalform(forms.ModelForm):    
+class Leaveapprovalform(forms.ModelForm):   
+    user_id=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
+    username=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
+    leave_type=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
+    reason=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
+    
+    start_date=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
+    end_date=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
+     
     class Meta:
         model=LeaveRequest
         fields='__all__'

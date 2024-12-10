@@ -15,8 +15,32 @@ ADMIN_CHANNEL_ID=settings.ADMIN_CHANNEL_ID
 LEAVE_CHANNEL_ID=settings.LEAVE_CHANNEL_ID
 
 
+
+
 allowed_date_current=datetime.now().year
 allowed_date_list=(allowed_date_current,(allowed_date_current+1))
+
+
+def leave_type_value(leave_type):
+    if leave_type=='1':
+        leave_type='Unpaid Leave'
+    elif leave_type=='2':
+        leave_type='Annual Leave'
+    elif leave_type=='3':
+        leave_type='Sick Leave'
+    else:
+        leave_type='Unknown'
+    return leave_type
+
+def time_validation(start_date:datetime,end_date:datetime):
+    if (start_date<datetime.now().date()):
+        return False
+    if (start_date.year not in allowed_date_list) and (end_date.year not in allowed_date_list):
+        return False
+    
+    if (end_date < start_date):
+        return False
+    return True
 
 format="%Y-%m-%d %H:%M:%S"
 def time_converter(utc_time: datetime):
@@ -32,18 +56,6 @@ def time_converter(utc_time: datetime):
     
     formatted_time = kathmandu_time.strftime(format)  
     return formatted_time
-
-def date_validation(start_date:datetime,end_date:datetime):
-    try:
-        if start_date.date()<datetime.now().date():
-            return Exception,False
-        if (start_date.year not in allowed_date_list) and (end_date.year not in allowed_date_list):
-            return Exception,False
-        if (start_date.date() < end_date.date()):
-            return Exception,False
-        return True
-    except Exception as e :
-        return e
 
 class LeaveRequestStatus(Enum):
     requested='Requested',
@@ -220,30 +232,8 @@ class CheckoutModal(discord.ui.Modal, title="Checkout"):
                 ephemeral=True
             )
 
-# class DropDown(discord.ui.View):
-    
 
-#     @discord.ui.UserSelect(
-#             placeholder='Select type of leave you are requesting',
-#             min_values=1,
-#             max_values=1,
-#             options=[
-#             discord.SelectOption(label='Unpaid Leave',value='unpaid_leave',description='Leaves taken without reimbrusement'),
-#             discord.SelectOption(label='Sick Leave',value='sick_leave',description='Leaves for medical reason'),
-#             discord.SelectOption(label='Annual Leave',value='annual_leave',description='00 amount of annual leave per year')
-#         ]
-#         super().__init__(self,)
-            
-#     )
-#     async def callback(self, interaction):
-    
-#         return await 
-
-
-
-
-
-class LeaveRequestModal(discord.ui.Modal,discord.ui.View,title='LeaveRequest'):  
+class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):  
    
 
     reason=discord.ui.TextInput(
@@ -253,13 +243,22 @@ class LeaveRequestModal(discord.ui.Modal,discord.ui.View,title='LeaveRequest'):
         placeholder='State the reason of leave',
         max_length=100,
     )
-  
+    
+
+    leave_type=discord.ui.TextInput(
+        style=discord.TextStyle.paragraph,
+        label="1.Sick Leave 2.Annual Leave 3.Unpaid Leave",
+        required=False,
+        placeholder='Mention the type of leave(1-3). Blank for annual Leave ',
+        max_length=1
+    )
 
     start_date=discord.ui.TextInput(
         style=discord.TextStyle.paragraph,
         label='Start Date(YYYY/MM/DD)',
         required=True,
-        placeholder='Enter the starting date of leave'
+        placeholder='Enter the starting date of leave',
+        max_length=10
     )
 
 
@@ -267,7 +266,8 @@ class LeaveRequestModal(discord.ui.Modal,discord.ui.View,title='LeaveRequest'):
         style=discord.TextStyle.paragraph,
         label='End Date(YYYY/MM/DD)',
         required=True,
-        placeholder='Enter the ending date of leave'
+        placeholder='Enter the ending date of leave',
+        max_length=10,
     )
 
 
@@ -281,56 +281,58 @@ class LeaveRequestModal(discord.ui.Modal,discord.ui.View,title='LeaveRequest'):
 
     async def on_submit(self, interaction:discord.Interaction):
         reason_input=self.reason.value.strip()
-        
+        leave_type_inpt=self.leave_type.value.strip()
+        leave_type=leave_type_value(leave_type_inpt)
         date_format='%Y/%m/%d'
     
         start_date=datetime.strptime(self.start_date.value,date_format).date()
         end_date=datetime.strptime(self.end_date.value,date_format).date()
         # leave_type=self.add_item(DropDown)
-        
-        
-        if date_validation(start_date,end_date):
-            try:
-                leave_request=await sync_to_async(LeaveRequest.objects.create)(
+        if time_validation(start_date,end_date):
+                try:
+                        leave_request=await sync_to_async(LeaveRequest.objects.create)(
                             user_id=str(self.user.id),
                             username=self.user.name,
                             reason=reason_input,
-                            # leave_type=leave_type,
+                            leave_type=leave_type,
                             start_date=start_date,
                             end_date=end_date
                         )
 
-                embed=discord.Embed(
+                        embed=discord.Embed(
                             title="Leave request initiated",
                             color=discord.Color.orange(),
                             description=reason_input
                         )
 
                         
-                embed.set_author(name=self.user.name)
-                embed.add_field(name='Leave request starting from' , value=leave_request.start_date,inline=False)
-                embed.add_field(name='Leave request till',value=leave_request.end_date)
-                embed.add_field(name="No. of Leave Days :",value=(leave_request.end_date-leave_request.start_date).days+1,inline=False)
-                await interaction.channel.send(embed=embed)                    
+                        embed.set_author(name=self.user.name)
+                        embed.add_field(name='Leave request starting from' , value=leave_request.start_date,inline=False)
+                        embed.add_field(name='Leave request till',value=leave_request.end_date)
+                        embed.add_field(name="No. of Leave Days :",value=(leave_request.end_date-leave_request.start_date).days+1,inline=False)
 
                         
-                channel=interaction.guild.get_channel(ADMIN_CHANNEL_ID)
+                        channel=interaction.guild.get_channel(1314130782503043103)
                     
-                await channel.send(embed=embed)
+                        await channel.send(embed=embed)
 
                         
-                await interaction.response.send_message(
-                            "✅ Leave request sent successfully!",
-                        )
-            except Exception as e:
+                        await interaction.response.send_message(
+                            "✅ Leave request sent successfully!",ephemeral=True
+                        ) 
+                   
+                except Exception as e:
                     
                         traceback.print_exc()
                         await interaction.response.send_message(
                             "❌ Failed to initiate a request ! Please try again.",
-                            ephemeral=True)
+                            ephemeral=True
+                        )
         else:
-            await interaction.response.send_message('aa',ephemeral=True)   
-
+            await interaction.response.send_message(
+                "❌ Failed to initiate a request ! Please provide valid dates"
+            )
+                
             
         
 
@@ -342,12 +344,17 @@ class Command(BaseCommand):
         intents.message_content = True
         bot = commands.Bot(command_prefix="!", intents=intents)
 
+        bot = commands.Bot(command_prefix="!",intents=intents)
+        
+
         @bot.event
         async def on_ready():
             self.stdout.write(self.style.SUCCESS(f'Logged in as {bot.user} (ID: {bot.user.id})'))
             await bot.tree.sync()
-           
             self.stdout.write(self.style.SUCCESS("Bot is ready and commands are synced."))
+
+        
+
 
         
         @bot.tree.command(name="checkin", description="Start your check-in by entering your tasks.")
@@ -366,27 +373,28 @@ class Command(BaseCommand):
         
 
         #create slash commands
+        
         @bot.tree.command(name='leave_request',description="Send a leave request to admin")
         async def take_leave(interaction:discord.Interaction):
             
             channel=bot.get_channel(ADMIN_CHANNEL_ID)
         
             # await channel.send('admin')
+            # channel=bot.get_channel(1314130782503043103)
+            channel=bot.get_channel(1314130782503043103)
+        
+            # await channel.send('admin')
             leave_request= await LeaveRequest.objects.filter(
                 
-                user_id=str(interaction.user.id), status=(LeaveRequestStatus.rejected.value or LeaveRequestStatus.requested.value)
+                user_id=str(interaction.user.id)
             ).afirst()
+            # await channel.send('admin heloo.')
             
-            if leave_request:
                 
-                await interaction.response.send_message(
-                    "❌ New request initiaion can only be done after completion of previous. Please contact admin.",
-                    ephemeral=True
-                )
-            else:
-                
-                modal=LeaveRequestModal(interaction.user)
-                await interaction.response.send_modal(modal)
+            modal=LeaveRequestModal(interaction.user)
+            await interaction.response.send_modal(modal)
+            
+            
                 
 
 

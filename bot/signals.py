@@ -50,6 +50,6 @@ def leave_request_status_updated(sender,instance,created,**kwargs):
             send_discord_message(discord_channel_message)
            
         elif instance.status=='Rejected':
-            send_discord_message("Rejected")
+            pass
         else:
             pass
