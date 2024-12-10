@@ -8,11 +8,41 @@ from asgiref.sync import sync_to_async
 import traceback
 from datetime import datetime
 from enum import Enum
-from datetime import datetime
 import pytz
+from django.conf import settings
+DISCORD_TOKEN = settings.DISCORD_TOKEN
+ADMIN_CHANNEL_ID=settings.ADMIN_CHANNEL_ID
+LEAVE_CHANNEL_ID=settings.LEAVE_CHANNEL_ID
 
 
 
+
+allowed_date_current=datetime.now().year
+allowed_date_list=(allowed_date_current,(allowed_date_current+1))
+
+
+def leave_type_value(leave_type):
+    if leave_type=='1':
+        leave_type='Unpaid Leave'
+    elif leave_type=='2':
+        leave_type='Annual Leave'
+    elif leave_type=='3':
+        leave_type='Sick Leave'
+    else:
+        leave_type='Unknown'
+    return leave_type
+
+def time_validation(start_date:datetime,end_date:datetime):
+    if (start_date<datetime.now().date()):
+        return False
+    if (start_date.year not in allowed_date_list) and (end_date.year not in allowed_date_list):
+        return False
+    
+    if (end_date < start_date):
+        return False
+    return True
+
+format="%Y-%m-%d %H:%M:%S"
 def time_converter(utc_time: datetime):
 
     if utc_time.tzinfo is None:
@@ -22,14 +52,10 @@ def time_converter(utc_time: datetime):
     
     kathmandu_timezone = pytz.timezone('Asia/Kathmandu')
     kathmandu_time = utc_time.astimezone(kathmandu_timezone)
-    
 
-    format="%Y-%m-%d %H:%M:%S"
-   
+    
     formatted_time = kathmandu_time.strftime(format)  
     return formatted_time
-from django.conf import settings
-DISCORD_TOKEN = settings.DISCORD_TOKEN
 
 class LeaveRequestStatus(Enum):
     requested='Requested',
@@ -206,7 +232,10 @@ class CheckoutModal(discord.ui.Modal, title="Checkout"):
                 ephemeral=True
             )
 
-class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
+
+class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):  
+   
+
     reason=discord.ui.TextInput(
         style=discord.TextStyle.paragraph,
         label='Request leave',
@@ -214,77 +243,120 @@ class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
         placeholder='State the reason of leave',
         max_length=100,
     )
+    
 
-    month=discord.ui.Select(
-
+    leave_type=discord.ui.TextInput(
+        style=discord.TextStyle.paragraph,
+        label="1.Sick Leave 2.Annual Leave 3.Unpaid Leave",
+        required=False,
+        placeholder='Mention the type of leave(1-3). Blank for annual Leave ',
+        max_length=1
     )
+
     start_date=discord.ui.TextInput(
         style=discord.TextStyle.paragraph,
-        label='Start Date(YYYY-MM-DD)',
+        label='Start Date(YYYY/MM/DD)',
         required=True,
-        placeholder='Enter the starting date of leave'
+        placeholder='Enter the starting date of leave',
+        max_length=10
     )
 
 
     end_date=discord.ui.TextInput(
         style=discord.TextStyle.paragraph,
-        label='End Date(YYYY-MM-DD)',
+        label='End Date(YYYY/MM/DD)',
         required=True,
-        placeholder='Enter the ending date of leave'
+        placeholder='Enter the ending date of leave',
+        max_length=10,
     )
+
 
     def __init__(self,user):
         super().__init__()
         self.user=user
+    
+    
+
+    
 
     async def on_submit(self, interaction:discord.Interaction):
         reason_input=self.reason.value.strip()
-        try:
-            leave_request=await sync_to_async(LeaveRequest.objects.create)(
-                user_id=self.user.id,
-                username=self.user.name,
-                start_date=self.user.start_date,
-                end_date=self.user.end_date
-            )
-            embed=discord.Embed(
-                title="Leave request",
-                color=discord.Color.orange,
-                description=self.reason.value
-            )
+        leave_type_inpt=self.leave_type.value.strip()
+        leave_type=leave_type_value(leave_type_inpt)
+        date_format='%Y/%m/%d'
+    
+        start_date=datetime.strptime(self.start_date.value,date_format).date()
+        end_date=datetime.strptime(self.end_date.value,date_format).date()
+        # leave_type=self.add_item(DropDown)
+        if time_validation(start_date,end_date):
+                try:
+                        leave_request=await sync_to_async(LeaveRequest.objects.create)(
+                            user_id=str(self.user.id),
+                            username=self.user.name,
+                            reason=reason_input,
+                            leave_type=leave_type,
+                            start_date=start_date,
+                            end_date=end_date
+                        )
 
+                        embed=discord.Embed(
+                            title="Leave request initiated",
+                            color=discord.Color.orange(),
+                            description=reason_input
+                        )
+
+                        
+                        embed.set_author(name=self.user.name)
+                        embed.add_field(name='Leave request starting from' , value=leave_request.start_date,inline=False)
+                        embed.add_field(name='Leave request till',value=leave_request.end_date)
+                        embed.add_field(name="No. of Leave Days :",value=(leave_request.end_date-leave_request.start_date).days+1,inline=False)
+
+                        
+                        channel=interaction.guild.get_channel(1314130782503043103)
+                    
+                        await channel.send(embed=embed)
+
+                        
+                        await interaction.response.send_message(
+                            "✅ Leave request sent successfully!",ephemeral=True
+                        ) 
+                   
+                except Exception as e:
+                    
+                        traceback.print_exc()
+                        await interaction.response.send_message(
+                            "❌ Failed to initiate a request ! Please try again.",
+                            ephemeral=True
+                        )
+        else:
+            await interaction.response.send_message(
+                "❌ Failed to initiate a request ! Please provide valid dates"
+            )
+                
             
-            embed.set_author(name=self.user.name)
-            embed.add_field(name='Leave request starting from' , value=leave_request.start_date,inline=False)
-            await interaction.channel.send(embed=embed)
-
-
-            await interaction.response.send_message(
-                "✅ Leave request sent successfully!",
-            )
-        except:
-            traceback.print_exc()
-            await interaction.response.send_message(
-                "❌ Failed to initiate a request ! Please try again.",
-                ephemeral=True
-            )
+        
 
 class Command(BaseCommand):
     help = "Run the Discord bot"
-
     def handle(self, *args, **options):
         intents = discord.Intents.default()
         intents.messages = True
         intents.message_content = True
-
         bot = commands.Bot(command_prefix="!", intents=intents)
+
+        bot = commands.Bot(command_prefix="!",intents=intents)
+        
 
         @bot.event
         async def on_ready():
             self.stdout.write(self.style.SUCCESS(f'Logged in as {bot.user} (ID: {bot.user.id})'))
             await bot.tree.sync()
-           
             self.stdout.write(self.style.SUCCESS("Bot is ready and commands are synced."))
 
+        
+
+
+        
         @bot.tree.command(name="checkin", description="Start your check-in by entering your tasks.")
         async def checkin(interaction: discord.Interaction):
             existing_record = await CheckinRecord.objects.filter(
@@ -301,25 +373,29 @@ class Command(BaseCommand):
         
 
         #create slash commands
+        
         @bot.tree.command(name='leave_request',description="Send a leave request to admin")
         async def take_leave(interaction:discord.Interaction):
-            print("work")
+            
+            channel=bot.get_channel(ADMIN_CHANNEL_ID)
+        
+            # await channel.send('admin')
+            # channel=bot.get_channel(1314130782503043103)
+            channel=bot.get_channel(1314130782503043103)
+        
+            # await channel.send('admin')
             leave_request= await LeaveRequest.objects.filter(
                 
-                user_id=str(interaction.user.id), status=(LeaveRequestStatus.rejected.value or LeaveRequestStatus.requested.value)
+                user_id=str(interaction.user.id)
             ).afirst()
-            print(1)
-            if leave_request:
-                print(2)
-                await interaction.response.send_message(
-                    "❌ New request initiaion can only be done after completion of previous. Please contact admin.",
-                    ephemeral=True
-                )
-            else:
-                print(3)
-                modal=LeaveRequestModal(interaction.user)
-                await interaction.response.send_modal(modal)
-
+            # await channel.send('admin heloo.')
+            
+                
+            modal=LeaveRequestModal(interaction.user)
+            await interaction.response.send_modal(modal)
+            
+            
+                
 
 
         @bot.tree.command(name="checkout", description="Checkout by marking completed tasks and adding any additional tasks.")
