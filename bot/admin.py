@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 #from .forms import Userregistrationform
 from bot.models import CheckinRecord,TaskRecord,BreakRecord,LeaveRequest#User
 
-class MediaInline(admin.TabularInline):
+class TaskRecordInline(admin.TabularInline):
     model=TaskRecord
     fields=['task','completed']
     readonly_fields=('task','completed',)
@@ -11,7 +11,7 @@ class MediaInline(admin.TabularInline):
 @admin.register(CheckinRecord)
 class CheckinRecordAdmin(admin.ModelAdmin):
     list_display = ('username', 'checkin_time', 'checkout_time')
-    inlines=[MediaInline]
+    inlines=[TaskRecordInline]
 
 @admin.register(TaskRecord)
 class TaskRecordAdmin(admin.ModelAdmin):
