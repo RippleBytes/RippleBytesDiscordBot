@@ -2,20 +2,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 
-
-# class UserRegistration(AbstractUser):
+# class Employee(models.Model):
 #     user_id=models.CharField(max_length=100)
-#     user_name=models.CharField(max_length=100)
+#     username=models.CharField(max_length=100)
 #     full_name=models.CharField(max_length=200)
-#     phone_number=models.PositiveIntegerField()
-#     email=models.EmailField(null=False,blank=False)
-
-#     class Meta:
-#         unique_together=("user_id","user_name")
-
-#     def __str__(self):
-#         return f'{self.user_id}:{self.user_name}' 
-
+#     email=models.EmailField(unique=True,null=False,blank=False)
+#     phone_number=models.PositiveBigIntegerField(null=False,blank=False)
 
 class CheckinRecord(models.Model):
     user_id = models.CharField(max_length=100)
@@ -48,8 +40,10 @@ class BreakRecord(models.Model):
 class LeaveRequest(models.Model):
     type=[
         ( 'Unpaid Leave','Unpaid Leave'),
-        ( 'Sick Leave','Sick Leave'),
-        ( 'Annual Leave','Annual Leave'),
+        ( 'Annual Leave','Annual Leave',),
+        ( 'Sick Leave','Sick Leave',),
+        ('Unknown','Unknown')
+        
         
 
     ]
@@ -70,4 +64,5 @@ class LeaveRequest(models.Model):
     
 
     def __str__(self):
-        return f'Leave request for {self.reason} -' #{self.user_name},
+        return f'Leave request for {self.reason}' #{self.user_name},
+    
