@@ -1,0 +1,24 @@
+{% extends 'master.html'%}
+
+{% block content%}
+
+{%if user.is_authenticated%}
+    <h1>hello</h1>
+{%else%}
+<div class="container">
+    <br>
+    <form class="POST" action="{% url 'register_admin'%}">
+        {% csrf_token%}
+        {{form.as_p}}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    
+    
+    </form>
+
+</div>
+
+
+{%endif%}
+
+
+{%endblock%}

@@ -1,53 +1,48 @@
-{% extends 'base.html'%}
+{% extends 'private_content.html'%}
 
-{% block content%}
-<div class="container">
-    <h1>
-        Leave record 
-    </h1>
-    <table class="table table-bordered table">
-        <thead class="table table-dark">
-          <tr>
-            <th>Leave id</th>
-            <th>User id</th>
-            <th>Username</th>
-            <th>Leave start</th>
-            <th>Leave end</th>
-            <th>Leave type</th>
-            <th>Status</th>
-            <th>Reason</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for user in user%}
-              <td><a href='{% url "personal_leave" user.id%}' class="link-dark text-decoration-underline">{{user.id}}</td></a>
-              <td>{{user.user_id}}</td>
-              <td>{{user.username}}</td>
-              <td>{{user.start_date}}</td>
-              <td>{{user.end_date}}</td>
-              <td>{{user.leave_type}}</td>
-              {%if user.status == 'Approved'%}
-              <td class="text-success">{{user.status}}</td>
-              {%elif user.status == 'Rejected'%}
-              <td class="text-danger">{{user.status}}</td>
-              {%else%}
-              <td class="text-primary">{{user.status}}</td>
-              {%endif%}
-              <td>{{user.reason}}</td>
-            </a>
-          </tr>
+{% block private_content%}
 
 
 
-          
-          
-            
-       
-        {% endfor%}
-        </tbody>
-      </table>
+  <div class="container">
+          <h1>
+              Leave record 
+          </h1>
+            <table class="table table-bordered table">
+                <thead class="table table-dark">
+                  <tr>
+                    <th>Leave id</th>
+                    <th>User id</th>
+                    <th>Username</th>
+                    <th>Leave start</th>
+                    <th>Leave end</th>
+                    <th>Leave type</th>
+                    <th>Status</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+              {% for user in Leavedata%}
+                  <tr>
+                      <td><a href='{% url "personal_leave" user.id%}' class="link-dark text-decoration-underline">{{user.id}}</td></a>
+                      <td>{{user.user_id}}</td>
+                      <td>{{user.username}}</td>
+                      <td>{{user.start_date}}</td>
+                      <td>{{user.end_date}}</td>
+                      <td>{{user.leave_type}}</td>
+                      {%if user.status == 'Approved'%}
+                      <td class="text-success">{{user.status}}</td>
+                      {%elif user.status == 'Rejected'%}
+                      <td class="text-danger">{{user.status}}</td>
+                      {%else%}
+                      <td class="text-primary">{{user.status}}</td>
+                      {%endif%}
+                      <td>{{user.reason}}</td>
+                  </tr>
+            {% endfor%}
+          </tbody>
+          </table>
+  </div>
 
-
-    
-</div>
+  
 {%endblock%}

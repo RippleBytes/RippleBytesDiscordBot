@@ -18,6 +18,7 @@
       
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          {%if user.is_authenticated%}
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 Filter by</a>
@@ -28,6 +29,11 @@
                     <li><a class="dropdown-item" href="{% url 'leave'%}">#</a></li>
                 </ul>
             </li>
+            <li class="nav-item"><a href="{% url 'logout'%}" class="nav-link">Logout</a></li>
+          {% else%}
+            <li class="nav-item"><a href="{% url 'leave'%}" class="nav-link">Login</a></li>
+            <li class="nav-item"><a href="{% url 'register_admin'%}" class="nav-link">Register</a></li>
+          {%endif%}
     
       </div>
     </div>
