@@ -57,7 +57,7 @@ class Leave(APIView):
         Leave_obj=LeaveRequest.objects.get(id=pk)
         form=Leaveapprovalform(instance=Leave_obj)       
         
-        return render(request,'GenericFormTemplate.html',{'form':form})
+        return render(request,'personal_record.html',{'form':form})
     
 
     def post(self,request,pk):
