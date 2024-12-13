@@ -1,13 +1,15 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User
 from django.utils.timezone import now
 
-# class Employee(models.Model):
-#     user_id=models.CharField(max_length=100)
-#     username=models.CharField(max_length=100)
-#     full_name=models.CharField(max_length=200)
-#     email=models.EmailField(unique=True,null=False,blank=False)
-#     phone_number=models.PositiveBigIntegerField(null=False,blank=False)
+
+
+
+class Employee(models.Model):
+    User=models.ForeignKey(User,on_delete=models.CASCADE)
+    discord_user_id=models.CharField(null=False,blank=False)
+    post=models.CharField(max_length=200,null=False,blank=False)
+    phone_number=models.PositiveBigIntegerField(null=False,blank=False)
 
 class CheckinRecord(models.Model):
     user_id = models.CharField(max_length=100)

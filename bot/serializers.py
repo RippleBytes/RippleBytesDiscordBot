@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import LeaveRequest,TaskRecord,CheckinRecord,BreakRecord
+from .models import LeaveRequest,TaskRecord,CheckinRecord,BreakRecord,Employee
 
 
 
@@ -21,3 +21,8 @@ class BreakSerializer(serializers.ModelSerializer):
     class Meta:
         model=BreakRecord
         fields='__all__'
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Employee
+        exclude=('id',)

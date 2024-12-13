@@ -1,5 +1,5 @@
 from django.urls import path,include
-from .views import AllRecord,Leave,Filter,loginuser,logoutuser,Registeradmin
+from .views import AllRecord,Leave,Filter,loginuser,logoutuser,Registeruser,PersonalRecord,EmployeeInformation
 # from rest_framework.routers import DefaultRouter
 
 # routers=DefaultRouter()
@@ -13,5 +13,7 @@ urlpatterns=[
     path("filter/<str:status>",Filter.as_view(),name='Status_filter'),
     path("login/",loginuser.as_view(),name='login'),
     path('logout/',logoutuser.as_view(),name='logout'),
-    path('register/',Registeradmin.as_view(),name='register_admin')
+    path('register/',Registeruser.as_view(),name='register_admin'),
+    path('personal_record/<int:pk>',PersonalRecord.as_view(),name='personal_record'),
+    path('register/employee_info/',EmployeeInformation.as_view(),name='employee_info')
 ]

@@ -7,7 +7,7 @@
 {%else%}
 <div class="container">
     <br>
-    <form class="POST" action="{% url 'register_admin'%}">
+    <form method="post" action="{% url 'register_admin'%}">
         {% csrf_token%}
         {{form.as_p}}
         <button type="submit" class="btn btn-primary">Submit</button>
