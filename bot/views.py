@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect,HttpResponse
+from django.shortcuts import render,redirect,HttpResponse,get_object_or_404
 from rest_framework import viewsets,permissions
 from rest_framework.views import APIView,View
 from django.views.generic import UpdateView
@@ -22,18 +22,18 @@ class loginuser(View):
             user=authenticate(request,username=username,password=password)
             if user is not None:
                 login(request,user)
-                return redirect('leave')
+                return redirect('home')
             else:
                 messages.success(request,"Invalid credentials")
                 return redirect('login')
         except Exception as e:
             print(e)
             return HttpResponse(e)
-        
+              
 class logoutuser(View):
     def get(self,request):
         logout(request)
-        messages.success(request,'You have been logged out!!')
+
         return redirect('login')
         
 
@@ -52,26 +52,23 @@ class AllRecord(View):
 
     
 
-class Leave(APIView):
+class Leave(View):
     def get(self,request,pk):
-        Leave_obj=LeaveRequest.objects.get(id=pk)
-        form=Leaveapprovalform(instance=Leave_obj)       
         
-        return render(request,'personal_record.html',{'form':form})
+        Leave_obj=get_object_or_404(LeaveRequest,id=pk)
+        form=Leaveapprovalform(instance=Leave_obj)       
+        return render(request,'Leaveapproval.html',{'form':form})
     
 
     def post(self,request,pk):
-        Leave_obj=LeaveRequest.objects.get(id=pk)
+        Leave_obj=get_object_or_404(LeaveRequest,id=pk)
         form=Leaveapprovalform(request.POST,instance=Leave_obj)
-        
         if form.is_valid():
                 try:
                     form.save()
-                    return redirect('leave')
+                    return redirect('home')
                 except Exception as e:
                     return HttpResponse (e)
-                
-                
         else:
                 return HttpResponse("Not Valid")
         
@@ -79,51 +76,79 @@ class Leave(APIView):
 
 
 
-class Filter(APIView):
+class Filter(View):
     def get(self,request,status):
-        leave_obj=LeaveRequest.objects.filter(status=status)
-        serilaizer=LeaveSerializer(leave_obj,many=True)
+        Leave_obj=LeaveRequest.objects.filter(status=status)
+        serilaizer=LeaveSerializer(Leave_obj,many=True)
         return render(request,'home.html',{'Leavedata':serilaizer.data})
 
 
 class Registeruser(View):
     def get(self,request):
         if request.user.is_authenticated:
-            return redirect('leave')
+            return redirect('home')
         else:
+            name=request.GET.get('discord_username','********')
+            id=int(request.GET.get('discord_user_id',000000000))
+            print (name,type(name))
+            print(id,type(id))
             form=RegistrationForm()
-            return render(request,'register.html',{'form':form})
+            form2=EmployeeInfoForm()
+            if name and id:
+                 form.fields['username'].initial=name
+                 form2.fields['User'].initial=name
+                 form2.fields['discord_user_id'].initial=id
+            return render(request,'register.html',{'form':form,'form2':form2})
     def post(self,request):
-        print(123)
         form=RegistrationForm(request.POST)
-        if form.is_valid():
+        form2=EmployeeInfoForm(request.POST)
+        # print({form.data}, {form2.data})
+        try:
+            if form.is_valid():
+                print("form valid")
                 form.save()
-                return redirect('employee_info')
-        else:
-                messages.success(request,'error in form')
-                return redirect('register_admin')
+                if form2.is_valid():
+                    form2.save()
+                    return redirect('login')
+            
+            else:
+                return HttpResponse(form.errors)
+                
+        
+        except Exception as e:
+                return HttpResponse(e)
 
     
-class EmployeeInformation(View):
-    def get(self,request):
-        form=EmployeeInfoForm()
-        return render(request,'GenericFormTemplate.html',{'form':form})
-    def post(self,request):
-        form=EmployeeInfoForm(request.POST or None)
-        if form.is_valid():
-            form.save()
-            messages.success(request,'Record added')
-            return redirect('leave')
+# class EmployeeInformation(View):
+#     def get(self,request):
+#         form=EmployeeInfoForm()
+#         username=request.GET.get('username')
+#         discord_id=request.GET.get('discord_user')
+#         if username and discord_id:
+#             form.fields['discord_user_id'].initial=discord_id
+#             form.fields['User'].initial=username
+#             return render(request,'register.html',{'form2':form})
         
-        return render(request,'GenericFormTemplate.html',{'form':form})
+#         return render(request,'register.html',{'form2':form})
+        
+#     def post(self,request,*args,**kwargs):
+#         form=EmployeeInfoForm(request.POST or None)
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request,'Record added')
+#             return redirect('home')
+        
+#         return render(request,'GenericFormTemplate.html',{'form2':form})
 
 
 class PersonalRecord(APIView):
     def get(self,request,pk):
         try:
-            object=Employee.objects.get(User_id=pk)
-            serializer=EmployeeSerializer(object)
+            Leave_obj=get_object_or_404(LeaveRequest,User_id=pk)
+
+            serializer=EmployeeSerializer(Leave_obj)
             return render(request,'personal_record.html',{'data':serializer.data})
         except Exception as e:
-            messages.success(request,'User record not found') 
-            return HttpResponse(e)
+            messages.success(request,'User not found')
+            return redirect('logout')
+        

@@ -13,6 +13,7 @@ from django.conf import settings
 DISCORD_TOKEN = settings.DISCORD_TOKEN
 ADMIN_CHANNEL_ID=settings.ADMIN_CHANNEL_ID
 LEAVE_CHANNEL_ID=settings.LEAVE_CHANNEL_ID
+REDIRECT_URL=settings.REDIRECT_URL
 
 
 
@@ -343,8 +344,7 @@ class Command(BaseCommand):
         intents.messages = True
         intents.message_content = True
         bot = commands.Bot(command_prefix="!", intents=intents)
-
-        bot = commands.Bot(command_prefix="!",intents=intents)
+    
         
 
         @bot.event
@@ -487,7 +487,10 @@ class Command(BaseCommand):
                         )
 
         @bot.tree.command(name="user_register",description='Create an employee login account!')
-        async def user_login_cmd(interaction:discord.Interaction):
-            await interaction.response.send_message("[Visit the register page](http://127.0.0.1:8000/register)",ephemeral=True)
+        async def user_register_cmd(interaction:discord.Interaction):
+            id=interaction.user.id
+            username=str(interaction.user.name)
+            await interaction.response.send_message(f"[Visit the register page]({REDIRECT_URL}?discord_user_id={id}&discord_username={username})",ephemeral=True)
+
         # Run the bot
         bot.run(DISCORD_TOKEN)

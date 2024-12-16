@@ -1,5 +1,5 @@
-from django.urls import path,include
-from .views import AllRecord,Leave,Filter,loginuser,logoutuser,Registeruser,PersonalRecord,EmployeeInformation
+from django.urls import path,re_path
+from .views import AllRecord,Leave,Filter,loginuser,logoutuser,Registeruser,PersonalRecord
 # from rest_framework.routers import DefaultRouter
 
 # routers=DefaultRouter()
@@ -8,12 +8,11 @@ from .views import AllRecord,Leave,Filter,loginuser,logoutuser,Registeruser,Pers
 
 urlpatterns=[
 
-    path("",AllRecord.as_view(),name='leave'),
+    path("",AllRecord.as_view(),name='home'),
     path("personal_leave/<int:pk>",Leave.as_view(),name='personal_leave'),
     path("filter/<str:status>",Filter.as_view(),name='Status_filter'),
     path("login/",loginuser.as_view(),name='login'),
     path('logout/',logoutuser.as_view(),name='logout'),
     path('register/',Registeruser.as_view(),name='register_admin'),
     path('personal_record/<int:pk>',PersonalRecord.as_view(),name='personal_record'),
-    path('register/employee_info/',EmployeeInformation.as_view(),name='employee_info')
 ]

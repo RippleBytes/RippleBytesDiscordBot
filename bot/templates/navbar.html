@@ -14,7 +14,7 @@
 
   <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{% url 'leave'%}">RippleBytes</a>
+      <a class="navbar-brand" href="{% url 'home'%}">RippleBytes</a>
       
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -26,12 +26,12 @@
                     <li><a class="dropdown-item" href="{% url 'Status_filter' 'Approved'%}">Approved</a></li>
                     <li><a class="dropdown-item" href="{% url 'Status_filter' 'Rejected'%}">Rejected</a></li>
                     <li><a class="dropdown-item" href="{% url 'Status_filter' 'Requested'%}">Requested</a></li>
-                    <li><a class="dropdown-item" href="{% url 'leave'%}">#</a></li>
+                    <li><a class="dropdown-item" href="{% url 'home'%}">#</a></li>
                 </ul>
             </li>
             <li class="nav-item"><a href="{% url 'logout'%}" class="nav-link">Logout</a></li>
           {% else%}
-            <li class="nav-item"><a href="{% url 'leave'%}" class="nav-link">Login</a></li>
+            <li class="nav-item"><a href="{% url 'home'%}" class="nav-link">Login</a></li>
             <li class="nav-item"><a href="{% url 'register_admin'%}" class="nav-link">Register</a></li>
           {%endif%}
     

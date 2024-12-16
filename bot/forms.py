@@ -54,6 +54,7 @@ class RegistrationForm(UserCreationForm):
         self.fields['username'].widget.attrs['class'] = 'form-control'
         self.fields['username'].widget.attrs['placeholder'] = 'User Name'
         self.fields['username'].label = ''
+        # self.fields['username'].disabled=True
         self.fields['username'].help_text = '<span class="form-text text-muted"><small>Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</small></span>'
     
         self.fields['password1'].widget.attrs['class'] = 'form-control'
@@ -69,7 +70,7 @@ class RegistrationForm(UserCreationForm):
 
 
 class EmployeeInfoForm(forms.ModelForm):
-    
+    User=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}),required=True)
     discord_user_id=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}),max_length=18,min_length=18)
     post=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
     phone_number=forms.CharField(max_length=10,min_length=10,widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
