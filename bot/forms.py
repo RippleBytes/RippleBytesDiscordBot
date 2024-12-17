@@ -9,12 +9,12 @@ leave_status=(
     )
 
 
-class UserRegistrationform(forms.ModelForm):
+class UserRegistrationForm(forms.ModelForm):
     class Meta:
         model=Employee
         fields='__all__'
 
-class Leaveapprovalform(forms.ModelForm):   
+class LeaveApprovalForm(forms.ModelForm):   
     user_id=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
     username=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
     leave_type=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
