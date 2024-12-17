@@ -1,7 +1,30 @@
 {% extends 'private_content.html'%}
 
 {%block private_content%}
-    {{data}}
+<div class="container">
+
+
+        <table class="table table-bordered table">
+            <thead class="table table-dark">
+              <tr>
+                <th>User ID</th>
+                <th>Discord ID</th>
+                <th>Post</th>
+                <th>Contact Number</th>
+              </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><a href="{% url 'user_record' data.User%}" class="link-dark text-decoration-underline">{{data.User}}</a></td>
+                    <td>{{data.discord_user_id}}</td>
+                    <td>{{data.post}}</td>
+                    <td>{{data.phone_number}}</td>
+
+                </tr>
+            </tbody>
+        </table>
+    </div>
+        
 
 
 {%endblock%}

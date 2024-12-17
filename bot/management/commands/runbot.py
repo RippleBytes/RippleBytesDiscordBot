@@ -379,16 +379,11 @@ class Command(BaseCommand):
             
             channel=bot.get_channel(ADMIN_CHANNEL_ID)
         
-            # await channel.send('admin')
-            # channel=bot.get_channel(1314130782503043103)
-            # channel=bot.get_channel(1314130782503043103)
-        
-            # await channel.send('admin')
             leave_request= await LeaveRequest.objects.filter(
                 
                 user_id=str(interaction.user.id)
             ).afirst()
-            # await channel.send('admin heloo.')
+    
             
                 
             modal=LeaveRequestModal(interaction.user)

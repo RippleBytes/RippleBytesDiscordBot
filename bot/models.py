@@ -7,7 +7,7 @@ from django.utils.timezone import now
 
 class Employee(models.Model):
     User=models.ForeignKey(User,on_delete=models.CASCADE)
-    discord_user_id=models.CharField(null=False,blank=False)
+    discord_user_id=models.CharField(null=False,blank=False,unique=True)
     post=models.CharField(max_length=200,null=False,blank=False)
     phone_number=models.PositiveBigIntegerField(null=False,blank=False)
 

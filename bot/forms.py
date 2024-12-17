@@ -41,19 +41,20 @@ class RegistrationForm(UserCreationForm):
     email=forms.EmailField(max_length=100,label="",widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'Email'}))
     first_name=forms.CharField(max_length=100,label="",widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'First Name'}))
     last_name=forms.CharField(max_length=100,label="",widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'Last Name'}))
-
-
+    discord_user_id=forms.CharField(max_length=18,label="Discord User Id",widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
+    post=forms.CharField(max_length=20,label="",widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'Position'}))
+    phone_number=forms.CharField(max_length=10,label="",widget=forms.widgets.NumberInput(attrs={'class':'form-control','placeholder':'Contact number'}))
     class Meta:
         model=User
-        fields=('username','email','first_name','last_name','password1','password2')
+        fields=('username','email','first_name','last_name','discord_user_id','post','phone_number','password1','password2')
 
 
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
             
         self.fields['username'].widget.attrs['class'] = 'form-control'
-        self.fields['username'].widget.attrs['placeholder'] = 'User Name'
-        self.fields['username'].label = ''
+        # self.fields['username'].widget.attrs['placeholder'] = 'User Name'
+        self.fields['username'].label = 'Username'
         # self.fields['username'].disabled=True
         self.fields['username'].help_text = '<span class="form-text text-muted"><small>Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</small></span>'
     
@@ -68,6 +69,8 @@ class RegistrationForm(UserCreationForm):
         self.fields['password2'].help_text = '<span class="form-text text-muted"><small>Enter the same password as before, for verification.</small></span>'
 
 
+        
+        
 
 class EmployeeInfoForm(forms.ModelForm):
     User=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}),required=True)
