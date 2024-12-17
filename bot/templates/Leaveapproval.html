@@ -1,14 +1,21 @@
-{% extends 'base.html'%}
+{% extends 'private_content.html'%}
 
-{% block content%}
+{% block private_content%}
 <div class="container">
     <br>
+    <div class="col-md-6 offset-md-5">
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <form method="post">
+                    {%csrf_token%}
+                    {{form.as_p}}
+                    <button type="submit" class="btn btn-primary col-md-6 offset-md-3">Submit</button>
+                </form>
+                </div>
+        </div>
+    </div>
+
     
-    <form method="post">
-        {%csrf_token%}
-        {{form.as_p}}
-        <button type="submit">Submit</button>
-    </form>
 
 </div>
     

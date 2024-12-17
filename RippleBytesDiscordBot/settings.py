@@ -141,3 +141,4 @@ ADMIN_CHANNEL_ID=config('ADMIN_CHANNEL_ID')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DISCORD_WEBHOOK_URL=config('DISCORD_WEBHOOK_URL')
+REDIRECT_URL=config('REDIRECT_URL')
