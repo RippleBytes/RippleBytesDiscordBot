@@ -1,23 +1,33 @@
 from django.shortcuts import render,redirect,HttpResponse,get_object_or_404
 from rest_framework import viewsets,permissions
 from rest_framework.views import APIView,View
-from .models import LeaveRequest,TaskRecord,BreakRecord,CheckinRecord,Employee
+from .models import LeaveRequest,TaskRecord,BreakRecord,CheckinRecord,Employee,BankDetails
 from .serializers import LeaveSerializer,TaskSerializer,BreakSerializer,CheckinSerializer,EmployeeSerializer,UserSerializer
 from rest_framework.response import Response
-from .forms import LeaveApprovalForm,RegistrationForm,EmployeeInfoForm
+from .forms import LeaveApprovalForm,RegistrationForm,EmployeeBankDetailForm
 from django.contrib import messages
 from django.contrib.auth import login,logout,authenticate
 from django.contrib.auth.decorators import user_passes_test
 from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User 
+from datetime import datetime
+from .validators import validate_image,validate_pdf
+
+def handle_uploaded_file(f):
+    with open("documents/EmployeeCitizenship", "wb+") as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+
+
 
 # Create your views here.
 class LoginUser(View):
     def get(self,request):
         return render(request,'home.html')
     def post(self,request):
-        username=request.POST['username']
-        password=request.POST['password']
+        username=request.POST.get('username')
+        password=request.POST.get('password')
         try:
             user=authenticate(request,username=username,password=password)
             if user is not None:
@@ -45,6 +55,7 @@ class EmployeeRecord(View):
                 # return Response(serializer.data)
                 return render(request,'home.html',{'Leavedata':serializer.data})
             if not request.user.is_superuser and request.user.is_authenticated:
+                print(request.user.id)
                 return redirect(f"employee_record/{request.user.id}")
             
             return render(request,'private_content.html')
@@ -95,49 +106,82 @@ class RegisterUser(View):
                  form.fields['discord_user_id'].initial=discord_id
             return render(request,'register.html',{'form':form})
     def post(self,request):
-        form=RegistrationForm(request.POST)
-
-        # print({form.data}, {form2.data})
+        form=RegistrationForm(request.POST,request.FILES)
         try:
+            
             if form.is_valid():
                 print("form valid")
-                userDB: User = form.save()
-                print(userDB)
+                userDB= form.save()    
                 Employee.objects.create(
-                    User= userDB,
-                    discord_user_id=request.POST['discord_user_id'],
-                    post=request.POST['post'],
-                    phone_number=request.POST['phone_number']
+                    user=userDB,
+                    discord_user_id=request.POST.get('discord_user_id'),
+                    job_title=request.POST.get('job_title'),
+                    phone_number=request.POST.get('phone_number'),
+                    date_of_birth=request.POST.get('date_of_birth'),
+                    gender=request.POST.get('gender'),
+                    employee_citizenship_number=request.POST.get('employee_citizenship_number'),
+                    employee_citizenship_photo=request.FILES.get('employee_citizenship_photo'),
+                    employee_resume_pdf=request.FILES.get('employee_resume_pdf'),
+                    employee_pp_photo=request.FILES.get('employee_pp_photo')
                 )
-               
                 return redirect('home')
             
             else:
-                return HttpResponse(form.errors)
+                print(form.errors)
+                return HttpResponse(form.errors.as_text)
                 
         
         except Exception as e:
+                print(e)
                 return HttpResponse(e)
 
 class PersonalRecord(View):
     def get(self,request,pk):
         try:
-            leave_object=get_object_or_404(Employee,User_id=pk)
-
-            serializer=EmployeeSerializer(leave_object)
+            employee_object=Employee.objects.get(user_id=pk)
+            serializer=EmployeeSerializer(employee_object)
             return render(request,'personal_record.html',{'data':serializer.data})
         except Exception as e:
+            print(e)
+            return HttpResponse(e)
             messages.success(request,'User not found')
             return redirect('logout')
         
 
-class UserRecord(APIView):
+class UserRecord(View):
     def get(self,request,pk):
         try:
             user_object=get_object_or_404(User,id=pk)
             serializer=UserSerializer(user_object)
-            return Response(serializer.data)
+            return render(request,'user_info.html',{'data':serializer.data})
         except Exception as e:
             messages.success(request,'Error in retreiving record')
             return redirect('employee_record')
         
+class EmployeeBankDetail(View):
+    def get(self,request,pk):
+        try:
+            form=EmployeeBankDetailForm()
+            user_object=Employee.objects.get(user_id=pk)
+            form.fields['user'].disabled=True
+            # form.fields['user']=user_object.ser_id
+            return render(request,'bankdetailform.html',{'form':form})
+        except Exception as e:
+            return HttpResponse(e)
+
+    def post(self,request,pk):
+        try:
+            user_object=Employee.objects.get(User_id=pk)
+            form=EmployeeBankDetailForm(request.POST)
+
+            form.fields['user']=request.user
+            if form.is_valid():
+                form.save()
+                messages.success(request,'Bank details have been added!')
+                return redirect('home')
+            else:
+                return HttpResponse(form.errors)
+        except Exception as e:
+            return HttpResponse(e)
+            messages.success(request,'Unable to post data. Please try again')
+            return redirect('user_record')

@@ -3,6 +3,7 @@
 {%block private_content%}
 <div class="container">
 
+        <a href="{% url 'bank_detail' data.User %}" class="btn btn-primary">Bank Details</a>
 
         <table class="table table-bordered table">
             <thead class="table table-dark">
@@ -11,14 +12,23 @@
                 <th>Discord ID</th>
                 <th>Post</th>
                 <th>Contact Number</th>
+                <th>Gender</th>
+                <th>Date of birth</th>
+                <th>Citizenship Number</th>
+                <th>PAN number</th>
+
               </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td><a href="{% url 'user_record' data.User%}" class="link-dark text-decoration-underline">{{data.User}}</a></td>
+                    <td><a href="{% url 'user_record' data.id%}" class="link-dark text-decoration-underline">{{data.User}}</a></td>
                     <td>{{data.discord_user_id}}</td>
-                    <td>{{data.post}}</td>
+                    <td>{{data.job_title}}</td>
                     <td>{{data.phone_number}}</td>
+                    <td>{{data.gender}}</td>
+                    <td>{{data.date_of_birth}} AD</td>
+                    <td>{{data.employee_citizenship_number}}</td>
+                    <td>{{data.employee_pan_number}}</td>
 
                 </tr>
             </tbody>

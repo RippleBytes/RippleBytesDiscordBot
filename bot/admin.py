@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CheckinRecord,TaskRecord,BreakRecord,LeaveRequest,Employee
+from .models import CheckinRecord,TaskRecord,BreakRecord,LeaveRequest,Employee,BankDetails
 class TaskRecordInline(admin.TabularInline):
     model=TaskRecord
     fields=['task','completed']
@@ -30,5 +30,10 @@ class LeaveRequestAdmin(admin.ModelAdmin):
      exclude=('id',)
 @admin.register(Employee)
 class EmployeeRegisterAdmin(admin.ModelAdmin):
-    list_display=('User','discord_user_id','post','phone_number')
+    list_display=('user','discord_user_id','job_title','phone_number')
+    exclude=('id',)
+
+@admin.register(BankDetails)
+class BankDetailsRegisterAdmin(admin.ModelAdmin):
+    list_display=('user','bank_name','bank_branch_location','employee_bank_account_name','employee_bank_account_number')
     exclude=('id',)
