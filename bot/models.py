@@ -92,11 +92,10 @@ class LeaveRequest(models.Model):
 
 
 class BankDetails(models.Model):
-    user=models.ForeignKey(Employee,on_delete=models.CASCADE)
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
     bank_name=models.CharField(max_length=100,blank=False,null=False,default='00')
-    employee_pan_number=models.PositiveBigIntegerField(blank=False,null=False,default=000)
-    employee_pan_photo=models.ImageField(upload_to='EmployeePanCard/',blank=False,null=False,default=None)
     bank_branch_location=models.CharField(max_length=50,blank=False,null=False,default='Kathmandu')
     employee_bank_account_name=models.CharField(max_length=100,blank=False,null=False,default=00)
     employee_bank_account_number=models.CharField(max_length=50,blank=False,null=False,default=00)
-    
+    employee_pan_number=models.PositiveBigIntegerField(blank=False,null=False,default=000)
+    employee_pan_photo=models.ImageField(upload_to='EmployeePanCard/',blank=False,null=False,default=None)    

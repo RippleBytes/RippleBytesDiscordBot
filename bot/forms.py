@@ -115,10 +115,10 @@ class EmployeeBankDetailForm(forms.ModelForm):
     
     bank_name=forms.ChoiceField(choices=banks_of_nepal,widget=forms.widgets.Select(attrs={'class':'form-control','placeholder':'NIC ASIA,GLOBAL IME,....','name':'bank_name'}))
     bank_branch_location=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'Ason,Hattiban,..','name':'bank_branch_location'}))
-    employee_bank_account_name=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'Doe','name':'employee_bank_account_name'}))
+    employee_bank_account_name=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'Do','name':'employee_bank_account_name'}))
     employee_bank_account_number=forms.CharField(max_length=50,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'00000','name':'employee_bank_account_number'}))
     employee_pan_number=forms.CharField(max_length=15,widget=forms.TextInput(attrs={'class':'form-control','placeholder':'*******','name':'employee_pan_number'}))
     employee_pan_photo=forms.ImageField(required=False,widget=forms.FileInput(attrs={'class':'form-control','name':'employee_pan_photo'}))
     class Meta:
         model=BankDetails
-        fields='__all__'
+        exclude=('user',)

@@ -2,21 +2,18 @@ from django.shortcuts import render,redirect,HttpResponse,get_object_or_404
 from rest_framework import viewsets,permissions
 from rest_framework.views import APIView,View
 from .models import LeaveRequest,TaskRecord,BreakRecord,CheckinRecord,Employee,BankDetails
-from .serializers import LeaveSerializer,TaskSerializer,BreakSerializer,CheckinSerializer,EmployeeSerializer,UserSerializer
+from .serializers import LeaveSerializer,TaskSerializer,BreakSerializer,CheckinSerializer,EmployeeSerializer,UserSerializer,BankDetailSerializer
 from rest_framework.response import Response
 from .forms import LeaveApprovalForm,RegistrationForm,EmployeeBankDetailForm
 from django.contrib import messages
 from django.contrib.auth import login,logout,authenticate
-from django.contrib.auth.decorators import user_passes_test
-from django.utils.decorators import method_decorator
 from django.contrib.auth.models import User 
-from datetime import datetime
 from .validators import validate_image,validate_pdf
 
-def handle_uploaded_file(f):
-    with open("documents/EmployeeCitizenship", "wb+") as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
+# def handle_uploaded_file(f):
+#     with open("documents/EmployeeCitizenship", "wb+") as destination:
+#         for chunk in f.chunks():
+#             destination.write(chunk)
 
 
 
@@ -110,7 +107,6 @@ class RegisterUser(View):
         try:
             
             if form.is_valid():
-                print("form valid")
                 userDB= form.save()    
                 Employee.objects.create(
                     user=userDB,
@@ -138,7 +134,7 @@ class RegisterUser(View):
 class PersonalRecord(View):
     def get(self,request,pk):
         try:
-            employee_object=Employee.objects.get(user_id=pk)
+            employee_object=Employee.objects.get(user=pk)
             serializer=EmployeeSerializer(employee_object)
             return render(request,'personal_record.html',{'data':serializer.data})
         except Exception as e:
@@ -162,26 +158,21 @@ class EmployeeBankDetail(View):
     def get(self,request,pk):
         try:
             form=EmployeeBankDetailForm()
-            user_object=Employee.objects.get(user_id=pk)
-            form.fields['user'].disabled=True
-            # form.fields['user']=user_object.ser_id
             return render(request,'bankdetailform.html',{'form':form})
         except Exception as e:
             return HttpResponse(e)
 
     def post(self,request,pk):
         try:
-            user_object=Employee.objects.get(User_id=pk)
-            form=EmployeeBankDetailForm(request.POST)
-
-            form.fields['user']=request.user
+            
+            form=EmployeeBankDetailForm(request.POST,request.FILES)
             if form.is_valid():
-                form.save()
-                messages.success(request,'Bank details have been added!')
+                bank=form.save(commit=False)
+                bank.user=request.user
+                bank.save()
                 return redirect('home')
             else:
                 return HttpResponse(form.errors)
         except Exception as e:
-            return HttpResponse(e)
             messages.success(request,'Unable to post data. Please try again')
             return redirect('user_record')
