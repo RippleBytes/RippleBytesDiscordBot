@@ -15,7 +15,6 @@ def leave_request_status_updated(sender,instance,created,**kwargs):
            
     
             discord_channel_message={
-                    "content": "LEAVE APPROVED!!",
                     "embeds": 
                     [
                         {
