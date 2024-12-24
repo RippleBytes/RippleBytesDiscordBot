@@ -46,7 +46,7 @@ class Employee(models.Model):
         super(Employee,self).save(*args,**kwargs)
     
     def __str__(self):
-        return (f"user:{self.User} discord_user_id{self.discord_user_id}")
+        return (f"user:{self.user} discord_user_id{self.discord_user_id}")
 class CheckinRecord(models.Model):
     user_id = models.CharField(max_length=100)
     username = models.CharField(max_length=100)

@@ -1,0 +1,37 @@
+{% extends 'private_content.html'%}
+
+{%block private_content%}
+    <div class="container">
+
+    
+    <h1>Leaves:</h1>
+    <table class="table table-bordered table">
+        <thead class="table table-dark">
+          <tr>
+            <th>Leave id</th>
+            <th>Discord user id</th>
+            <th>Username</th>
+            <th>Leave start</th>
+            <th>Leave end</th>
+            <th>Leave type</th>
+            <th>Status</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for leave in data%}
+            <tr>
+                <td>{{leave.id}}</td>
+                <td>{{leave.user_id}}</td>
+                <td>{{leave.username}}</td>
+                <td>{{leave.start_date}}</td>
+                <td>{{leave.end_date}}</td>
+                <td>{{leave.leave_type}}</td>
+                <td>{{leave.status}}</td>
+                <td>{{leave.reason}}</td>
+            </tr>
+            
+        </tbody>
+    {%endfor%}
+</div>
+{%endblock%}
