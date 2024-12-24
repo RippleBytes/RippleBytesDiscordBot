@@ -4,9 +4,12 @@
     <div class="container">
 
     
+    
+    {% if leave_data%}
     <h1>Leaves:</h1>
     <table class="table table-bordered table">
         <thead class="table table-dark">
+        
           <tr>
             <th>Leave id</th>
             <th>Discord user id</th>
@@ -19,7 +22,7 @@
           </tr>
         </thead>
         <tbody>
-            {% for leave in data%}
+            {% for leave in leave_data%}
             <tr>
                 <td>{{leave.id}}</td>
                 <td>{{leave.user_id}}</td>
@@ -33,5 +36,9 @@
             
         </tbody>
     {%endfor%}
+    {%else%}
+    <h1>No leaves:yet to add</h1>
+        
+    {%endif%}
 </div>
 {%endblock%}

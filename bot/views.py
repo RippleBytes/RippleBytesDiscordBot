@@ -143,10 +143,18 @@ class PersonalWorkRecord(View):
         try:
             employee_object=get_object_or_404(Employee,user=pk)
             if request.user ==employee_object.user:
-                task_object=get_list_or_404(LeaveRequest,user_id=employee_object.discord_user_id)
-                serializer=LeaveSerializer(task_object,many=True)
+                try:
+                    leave_object=get_list_or_404(LeaveRequest,user_id=employee_object.discord_user_id )
+                    serializer=LeaveSerializer(leave_object,many=True)
                 # serializer=EmployeeSerializer(employee_object)
-                return render(request,'employee_record.html',{'data':serializer.data})
+                    return render(request,'employee_record.html',{'leave_data':serializer.data})
+                except:
+                    return render(request,'employee_record.html')
+
+                
+                serializer=LeaveSerializer(leave_object,many=True)
+                # serializer=EmployeeSerializer(employee_object)
+                
             else:
                 messages.success(request,'Unauthorized access')
                 return redirect('admin_home')
