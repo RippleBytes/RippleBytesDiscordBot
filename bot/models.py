@@ -25,21 +25,20 @@ class Employee(models.Model):
     user=models.ForeignKey(User,on_delete=models.CASCADE)
     discord_user_id=models.CharField(blank=False,null=False,unique=True,default=11)
     job_title=models.CharField(max_length=200,blank=False,null=False,default='employee')
-    phone_number=models.PositiveBigIntegerField(blank=False,null=False,default=201231)
+    phone_number=models.CharField(max_length=10,blank=False,unique=True,null=False,default=000000)
     date_of_birth=models.CharField(blank=False,null=False,default='2025/10/10')
     gender=models.CharField(choices=gender,blank=False,null=False,default='00')
     
-    employee_citizenship_number=models.CharField(blank=False,null=False,max_length=15,default=000000)
+    employee_citizenship_number=models.CharField(blank=False,null=False,max_length=14,default=000000)
     employee_citizenship_photo=models.ImageField(upload_to='EmployeeCitizenship/',blank=True,null=True)
     employee_resume_pdf=models.FileField(upload_to='EmployeeResume/',blank=True,null=True)
     employee_pp_photo=models.ImageField(upload_to='EmployeePhoto/',blank=True,null=True)
 
 
-    # def clean(self):
-    #     validate_pdf(self.employee_resume_pdf)
-    #     validate_image(self.employee_citizenship_photo)
-    #     validate_image(self.employee_pan_photo)
-    #     validate_image(self.employee_pp_photo)
+    def clean(self):
+        validate_pdf(self.employee_resume_pdf)
+        validate_image(self.employee_citizenship_photo)
+        validate_image(self.employee_pp_photo)
 
     def save(self,*args, **kwargs):
         self.clean()
@@ -98,4 +97,11 @@ class BankDetails(models.Model):
     employee_bank_account_name=models.CharField(max_length=100,blank=False,null=False,default=00)
     employee_bank_account_number=models.CharField(max_length=50,blank=False,null=False,default=00)
     employee_pan_number=models.PositiveBigIntegerField(blank=False,null=False,default=000)
-    employee_pan_photo=models.ImageField(upload_to='EmployeePanCard/',blank=False,null=False,default=None)    
+    employee_pan_photo=models.ImageField(upload_to='EmployeePanCard/',blank=True,null=True,default=None)   
+
+    def clean(self):
+        validate_image(self.employee_pan_photo)
+
+    def save(self,*args, **kwargs):
+        self.clean()
+        super(BankDetails,self).save(*args,**kwargs)

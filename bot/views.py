@@ -1,4 +1,8 @@
 from django.shortcuts import render,redirect,HttpResponse,get_object_or_404,get_list_or_404
+import csv
+from rest_framework.renderers import JSONRenderer
+from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import viewsets,permissions
 from rest_framework.views import APIView,View
 from .models import LeaveRequest,TaskRecord,BreakRecord,CheckinRecord,Employee,BankDetails
@@ -8,15 +12,17 @@ from .forms import LeaveApprovalForm,RegistrationForm,EmployeeBankDetailForm
 from django.contrib import messages
 from django.contrib.auth import login,logout,authenticate
 from django.contrib.auth.models import User 
-from .validators import validate_image,validate_pdf
 from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 
+
+
 # Create your views here.
 class LoginUser(View):
+    
     permission_classes=[permissions.AllowAny]
     def get(self,request):
         return render(request,'admin_home.html')
@@ -46,7 +52,7 @@ class EmployeeRecord(View):
     authentication_classes=(JWTAuthentication,)
     def get(self,request):
             if request.user.is_superuser :
-                user_object=User.objects.all()
+                user_object=User.objects.all().order_by('id')
                 serializer=UserSerializer(user_object,many=True)
                 return render(request,'admin_home.html',{'data':serializer.data})
 
@@ -112,76 +118,88 @@ class RegisterUser(View):
         try:
             
             if form.is_valid():
-                userDB= form.save()    
-                Employee.objects.create(
-                    user=userDB,
-                    discord_user_id=request.POST.get('discord_user_id'),
-                    job_title=request.POST.get('job_title'),
-                    phone_number=request.POST.get('phone_number'),
-                    date_of_birth=request.POST.get('date_of_birth'),
-                    gender=request.POST.get('gender'),
-                    employee_citizenship_number=request.POST.get('employee_citizenship_number'),
-                    employee_citizenship_photo=request.FILES.get('employee_citizenship_photo'),
-                    employee_resume_pdf=request.FILES.get('employee_resume_pdf'),
-                    employee_pp_photo=request.FILES.get('employee_pp_photo')
-                )
-                return redirect('admin_home')
+                with transaction.atomic():
+                    userDB= form.save(commit=False) 
+                    userDB.save()  
+                    Employee.objects.create(
+                        user=userDB,
+                        discord_user_id=request.POST.get('discord_user_id'),
+                        job_title=request.POST.get('job_title'),
+                        phone_number=request.POST.get('phone_number'),
+                        date_of_birth=request.POST.get('date_of_birth'),
+                        gender=request.POST.get('gender'),
+                        employee_citizenship_number=request.POST.get('employee_citizenship_number'),
+                        employee_citizenship_photo=request.FILES.get('employee_citizenship_photo'),
+                        employee_resume_pdf=request.FILES.get('employee_resume_pdf'),
+                        employee_pp_photo=request.FILES.get('employee_pp_photo')
+                    )
+                    form.save()
+                    return redirect('admin_home')
             
             else:
-                print(form.errors)
-                return HttpResponse(form.errors.as_text)
+                messages.success(request,form.errors)
+                return redirect('register_user')
                 
         
         except Exception as e:
-                print(e)
-                return HttpResponse(e)
+                messages.success(request,e)
+                return redirect('register_user')
 
 class PersonalWorkRecord(View):
     permission_classes=[permissions.IsAuthenticated]
     authentication_classes=(JWTAuthentication,)
     def get(self,request,pk):
-        try:
             employee_object=get_object_or_404(Employee,user=pk)
-            if request.user ==employee_object.user:
-                try:
-                    leave_object=get_list_or_404(LeaveRequest,user_id=employee_object.discord_user_id )
-                    serializer=LeaveSerializer(leave_object,many=True)
-                # serializer=EmployeeSerializer(employee_object)
-                    return render(request,'employee_record.html',{'leave_data':serializer.data})
-                except:
-                    return render(request,'employee_record.html')
+            leave_serializer=None
+            task_serializer=None
 
+
+
+            try:
+                leave_object=LeaveRequest.objects.filter(user_id=employee_object.discord_user_id)
                 
-                serializer=LeaveSerializer(leave_object,many=True)
-                # serializer=EmployeeSerializer(employee_object)
-                
+            except ObjectDoesNotExist:
+                leave_object=None
+        
+            if leave_object:
+                leave_serializer=LeaveSerializer(leave_object,many=True)
+    
+
+            try:
+                checkin_object=CheckinRecord.objects.filter(user_id=employee_object.discord_user_id ).get()
+            except ObjectDoesNotExist:
+                checkin_object=None
+            if checkin_object:
+                task_object=TaskRecord.objects.filter(checkin=checkin_object.id)
+                task_serializer=TaskSerializer(task_object,many=True)
+    
+            if request.user ==employee_object.user:
+               
+                return render(request,'employee_record.html',{'json_data': leave_serializer.data if leave_serializer else None,
+                'task_data': task_serializer.data if task_serializer else None,})
+               
             else:
                 messages.success(request,'Unauthorized access')
                 return redirect('admin_home')
-
-        except Exception as e:
-            return HttpResponse(e)
-
-
 
 class PersonalProfileView(View):
     permission_classes=[permissions.IsAuthenticated]
     authentication_classes=(JWTAuthentication,)
     def get(self,request,pk):
         try:
-            
+        
             employee_object=get_object_or_404(Employee,user=pk)
-            user_object=get_object_or_404(User,id=pk)
-            
-            user_serializer=UserSerializer(user_object)
             employee_serializer=EmployeeSerializer(employee_object)
+
+            user_object=get_object_or_404(User,id=pk)
+            user_serializer=UserSerializer(user_object)
             return render(request,'personal_profile.html',{'employee_data':employee_serializer.data,'user_data':user_serializer})
             
         except Exception as e:
             # print(e)
             # return HttpResponse(e)
             messages.success(request,'User not found')
-            return redirect('logout')
+            return redirect('admin_home')
         
         
 class EmployeeBankDetail(View):
@@ -189,25 +207,31 @@ class EmployeeBankDetail(View):
     authentication_classes=(JWTAuthentication,)
 
     def get(self,request,pk):
-        
         try:
-            bank_detail_object=get_object_or_404(BankDetails,user=pk)
+            form=EmployeeBankDetailForm()
+            
+            
+            bank_detail_object=BankDetails.objects.filter(user=pk).first()
+
+            if not bank_detail_object:
+                return render(request,'bank_detail_form.html',{'form':form}) 
             if request.user ==bank_detail_object.user:
-                if bank_detail_object:
                     form=EmployeeBankDetailForm(instance=bank_detail_object)
-                    return render(request,'bank_detail_form.html',{'form':form})
-                else:
-                    form=EmployeeBankDetailForm()
-                    return render(request,'bank_detail_form.html',{'form':form})
+                    return render(request,'bank_detail_form.html',{'form':form})    
             else:
                 messages.success(request,'Unauthorized access')
-                return redirect('admin_home')
+                return redirect('admin_home')    
+        
         except Exception as e:
             return HttpResponse(e)
 
     def post(self,request,pk):
         try:
-            bank_detail_object=get_object_or_404(BankDetails,user=pk)
+        
+            bank_detail_object=BankDetails.objects.filter(user=pk).first()
+            if not bank_detail_object:
+                form=EmployeeBankDetailForm(request.POST,request.FILES)
+            
             form=EmployeeBankDetailForm(request.POST,request.FILES,instance=bank_detail_object)
             if form.is_valid():
                 bank=form.save(commit=False)

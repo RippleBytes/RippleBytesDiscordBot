@@ -1,35 +1,38 @@
 {% extends 'private_content.html'%}
 
 {%block private_content%}
-<div class="container col-md-6 offset-md-4">
-  
-<br>
-    <div class="card" style="width: 25rem;">
-      <div class="card-body">
-       
-        <h5 class="card-title">{{ user_data.username.value }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">{{ user_data.email.value }}</h6>
-        <div class="col-md-4 text-center">
-          <img src="{{ data.employee_pp_photo }}" alt="{{ employee.name }}" class="rounded-circle" style="width: 100px; height: 100px;">
+<div class="container col-md-6 offset-md-3">
+  <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card text-center shadow" style="width: 20rem;">
+        <div class="card-body">
+            <div class="mb-3">
+              <img src="{{ employee_data.employee_pp_photo }}" alt="{{ employee.name }}" style="width: 100px; height: 100px;">
+            </div>
+            <h5 class="card-title">{{ user_data.username.value }}</h5>
+            <p class="text-muted">{{employee_data.job_title}}</p>
+            <hr>
+            <ul class="list-unstyled text-start">
+                <li><strong>Email:</strong> {{ user_data.email.value }}</li>
+                <li><strong>Contact Number:</strong> {{employee_data.phone_number}}</li>
+                <li><strong>Employee ID:</strong> {{ user_data.id.value}}</li>
+                <li><strong>Discord User ID:</strong> {{employee_data.discord_user_id}}</li>
+                <li><strong>Date joined:</strong> {{  user_data.date_joined.value }}</li>
+                <li><strong>Gender:</strong> {{employee_data.gender}}</li>
+                <li><strong>Date of Birth:</strong> {{employee_data.date_of_birth}} AD</li>
+                {%if request.user.id == employee_data.user%}
+                  <li><strong>Citizenship Number:</strong> {{employee_data.employee_citizenship_number}}</li>
+                  <li><strong>Bank Details:</strong><a href="{% url 'bank_detail' employee_data.user%}" class="link-dark text-decoration-underline">Bank details</a></li>
+                {%else%}
+                  <li><strong>Citizenship Number:</strong>**-**-**-*****</li>
+                {%endif%}
+              </ul>
+              <a href="{%url 'admin_home'%}" class="btn btn-primary">Home</a>
         </div>
-        <p class="card-text">
-          <strong>Employee ID:</strong> {{ user_data.id.value}} <br>
-          <strong>Full Name:</strong> {{ user_data.first_name.value }} {{ user_data.last_name.value }} <br>
-          <strong>Joined:</strong> {{  user_data.date_joined.value }} <br>
-          <strong>Discord User ID:</strong> {{employee_data.discord_user_id}}<br>
-          <strong>Job title:</strong> {{employee_data.job_title}}<br>
-          <strong>Contact Number:</strong> {{employee_data.phone_number}}<br>
-          <strong>Gender:</strong> {{employee_data.gender}}<br>
-          <strong>Date of Birth:</strong> {{employee_data.date_of_birth}} AD<br>
-          <strong>Citizenship Number:</strong> {{employee_data.employee_citizenship_number}}<br>
-          <strong>Bank Details:</strong> <a href="{% url 'bank_detail' employee_data.user%}" class="link-dark text-decoration-underline">Bank details</a>
-          
-        </p>
-        <a href="{% url 'employee_record' user.id%}" class="card-link">Back</a>
-      </div>
+        
     </div>
-
+    
 </div>
+
         
 
 

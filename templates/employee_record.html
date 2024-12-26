@@ -5,40 +5,97 @@
 
     
     
-    {% if leave_data%}
-    <h1>Leaves:</h1>
-    <table class="table table-bordered table">
-        <thead class="table table-dark">
-        
-          <tr>
-            <th>Leave id</th>
-            <th>Discord user id</th>
-            <th>Username</th>
-            <th>Leave start</th>
-            <th>Leave end</th>
-            <th>Leave type</th>
-            <th>Status</th>
-            <th>Reason</th>
-          </tr>
-        </thead>
-        <tbody>
-            {% for leave in leave_data%}
-            <tr>
-                <td>{{leave.id}}</td>
-                <td>{{leave.user_id}}</td>
-                <td>{{leave.username}}</td>
-                <td>{{leave.start_date}}</td>
-                <td>{{leave.end_date}}</td>
-                <td>{{leave.leave_type}}</td>
-                <td>{{leave.status}}</td>
-                <td>{{leave.reason}}</td>
-            </tr>
+    {% if json_data and task_data %}
+        <h1>Leaves requested till date</h1>
+        <table class="table table-bordered table">
+            <thead class="table table-dark">
             
-        </tbody>
+              <tr>
+                <th>Leave id</th>
+                <th>Discord user id</th>
+                <th>Username</th>
+                <th>Leave start</th>
+                <th>Leave end</th>
+                <th>Leave type</th>
+                <th>Status</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+                {% for leave in json_data%}
+                <tr>
+                    <td>{{leave.id}}</td>
+                    <td>{{leave.user_id}}</td>
+                    <td>{{leave.username}}</td>
+                    <td>{{leave.start_date}}</td>
+                    <td>{{leave.end_date}}</td>
+                    <td>{{leave.leave_type}}</td>
+                    <td>{{leave.status}}</td>
+                    <td>{{leave.reason}}</td>
+                </tr>
+                
+            </tbody>
     {%endfor%}
-    {%else%}
-    <h1>No leaves:yet to add</h1>
-        
-    {%endif%}
+          </table>
+
+          <h1>Your Task Record</h1>
+          <table class="table table-bordered table">
+            <thead class="table table-dark">
+            
+              <tr>
+                <th>Task id</th>
+                <th>Task</th>
+                <th>Status</th>
+              
+              </tr>
+            </thead>
+            <tbody>
+                {% for task in task_data%}
+                <tr>
+                    <td>{{task.id}}</td>
+                    <td>{{task.task}}</td>
+                    {%if task.completed%}
+                        <td>Completed</td>
+                    {%else%}
+                        <td>Not Completed</td>
+                    {%endif%}
+                </tr>
+                
+            </tbody>
+        {%endfor%}
+        </table>
+    {%elif task_data%}
+            <h1>Your task record</h1>
+            <table class="table table-bordered table">
+              <thead class="table table-dark">
+              
+                <tr>
+                  <th>Task id</th>
+                  <th>Task</th>
+                  <th>Status</th>
+                
+                </tr>
+              </thead>
+              <tbody>
+                  {% for task in task_data%}
+                  <tr>
+                      <td>{{task.id}}</td>
+                      <td>{{task.task}}</td>
+                      {%if task.completed%}
+                          <td>Completed</td>
+                      {%else%}
+                          <td>Not Completed</td>
+                      {%endif%}
+                  </tr>
+                  
+              </tbody>
+          {%endfor%}
+          </table>
+  {%else%}
+      <h1>No leave or task record</h1>
+      <p> Please checkin through discord!!</p>
+            
+  {%endif%}
+      
 </div>
 {%endblock%}

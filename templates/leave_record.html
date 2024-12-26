@@ -32,8 +32,10 @@
           </tr>
         </thead>
         <tbody>
+        {%if Leavedata%}
         {% for user in Leavedata%}
-              <td><a href='{% url "personal_leave" user.id%}' class="link-dark text-decoration-underline">{{user.id}}</td></a>
+        <tr>
+              <td><a href='{% url "personal_leave" user.id%}' class="link-dark text-decoration-underline">{{user.id}}</a></td>
               <td>{{user.user_id}}</td>
               <td>{{user.username}}</td>
               <td>{{user.start_date}}</td>
@@ -48,20 +50,21 @@
               {%endif%}
               <td>{{user.reason}}</td>
             </a>
+            {% endfor%}
           </tr>
-
-
-
-          
-          
-            
-       
-        {% endfor%}
+          {%else%}
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+          {%endif%}
+        
         </tbody>
       </table>
-
-
-    
 </div>
 
 {%endblock%}
