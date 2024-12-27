@@ -7,7 +7,7 @@
     
     {% if json_data and task_data %}
         <h1>Leaves requested till date</h1>
-        <table class="table table-bordered table">
+        <table class="table table-bordered table" >
             <thead class="table table-dark">
             
               <tr>
@@ -39,7 +39,7 @@
           </table>
 
           <h1>Your Task Record</h1>
-          <table class="table table-bordered table">
+          <table class="table table-bordered table" >
             <thead class="table table-dark">
             
               <tr>
@@ -64,9 +64,9 @@
             </tbody>
         {%endfor%}
         </table>
-    {%elif task_data%}
+    {%elif task_data and not json_data%}
             <h1>Your task record</h1>
-            <table class="table table-bordered table">
+            <table class="table table-bordered table" style="width: 100rem;">
               <thead class="table table-dark">
               
                 <tr>
@@ -92,7 +92,8 @@
           {%endfor%}
           </table>
   {%else%}
-      <h1>No leave or task record</h1>
+      <h1>Welcome to RippleBytes </h1>
+      <h2>No leave or task record</h2>
       <p> Please checkin through discord!!</p>
             
   {%endif%}

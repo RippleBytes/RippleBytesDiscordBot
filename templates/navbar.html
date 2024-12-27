@@ -8,6 +8,8 @@
            
             <li class="nav-item"><a href="{% url 'logout'%}" class="nav-link">Logout</a></li>
             <li class="nav-item"><a href="{% url 'employee_leave'%}" class="nav-link">Leave record</a></li>
+            <li class="nav-item"><a href="{%url 'task_record'%}" class="nav-link">Task Record</a></li>
+            <li class="nav-item"><a href="{% url 'all_checkin_record'%}" class="nav-link">Checkin Record</a></li>
 
           {%elif user.is_authenticated and not user.is_superuser%}
           <li class="nav-item dropdown">

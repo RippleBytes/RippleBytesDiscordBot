@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,HttpResponse,get_object_or_404,get_list_or_404
-import csv
+import csv,os
 from rest_framework.renderers import JSONRenderer
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
@@ -15,9 +15,6 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
-
-
 
 
 # Create your views here.
@@ -152,9 +149,6 @@ class PersonalWorkRecord(View):
             employee_object=get_object_or_404(Employee,user=pk)
             leave_serializer=None
             task_serializer=None
-
-
-
             try:
                 leave_object=LeaveRequest.objects.filter(user_id=employee_object.discord_user_id)
                 
@@ -244,6 +238,152 @@ class EmployeeBankDetail(View):
             messages.success(request,'Unable to post data. Please try again')
             return redirect('user_record')
         
+
+class AllTaskRecord(View):
+    permission_classes=[permissions.IsAdminUser]
+    authentication_classes=[JWTAuthentication]
+    def get(self,request):
+        try:
+            task_object=TaskRecord.objects.all().order_by('checkin_id')
+            serializer=TaskSerializer(task_object,many=True)
+
+            if not request.user.is_superuser :
+                messages.success(request,'No access!!')
+                return redirect('admin_home')
+            return render(request,'task_record.html',{'task_data':serializer.data})
+        except Exception as e:
+            messages.success(request,e)
+            return redirect('admin_home')
+        
+
+class AllCheckinRecord(View):
+    permission_classes=[permissions.IsAdminUser]
+    authentication_classes=[JWTAuthentication]
+    def get(self,request):
+        try:
+            checkin_object=CheckinRecord.objects.all().order_by('checkin_time')
+            serializer=CheckinSerializer(checkin_object,many=True)
+            
+            return render(request,'checkin.html',{'checkin_record':serializer.data})
+        except Exception as e:
+            messages.success(request,e)
+            return redirect('admin_home')
+        
+class EditPersonalInfo(View):
+    permission_classes=[permissions.IsAdminUser]
+    authentication_classes=[JWTAuthentication]
+    def get(self,request,pk):
+    
+        try:
+            user_object=get_object_or_404(User,id=pk)
+            if request.user==user_object:
+               
+                form=RegistrationForm(instance=user_object)
+                emmployee_object=get_object_or_404(Employee, user=user_object)
+
+                
+                #Hide from fields when editing
+                username_field=form.fields['username']
+                username_field.widget=username_field.hidden_widget()
+                
+
+                discord_UID_field=form.fields['discord_user_id']
+                discord_UID_field.widget=discord_UID_field.hidden_widget()
+
+                job_title_field=form.fields['job_title']
+                job_title_field.widget=job_title_field.hidden_widget()
+
+                employee_CN_field=form.fields['employee_citizenship_number']
+                employee_CN_field.widget=employee_CN_field.hidden_widget()
+
+                citizenship_photo=form.fields['employee_citizenship_photo']
+                citizenship_photo.widget=citizenship_photo.hidden_widget()
+                
+                employee_resume_pdf=form.fields['employee_resume_pdf']
+                employee_resume_pdf.widget=employee_resume_pdf.hidden_widget()
+                
+                employe_pp_photo=form.fields['employee_pp_photo']
+                employe_pp_photo.widget=employe_pp_photo.hidden_widget()
+                
+
+
+                
+                form.initial['phone_number']=emmployee_object.phone_number
+                form.initial['gender']=emmployee_object.gender
+                form.initial['date_of_birth']=emmployee_object.date_of_birth
+
+                return render(request,'register.html',{'form':form})
+            else:
+                return render('admin_home')
+        except Exception as e:
+            print(e)
+            return redirect('admin_home')
+            
+    def post(self,request,pk):
+        try:
+            user_object=get_object_or_404(User,id=pk)
+            form=RegistrationForm(request.POST,request.FILES,instance=user_object)
+
+            
+            emmployee_object=Employee.objects.get(user=user_object)
+            print(emmployee_object)
+
+            DUID=emmployee_object.discord_user_id
+            JT=emmployee_object.job_title
+            ECN=emmployee_object.employee_citizenship_number
+            print(DUID,JT,ECN)
+
+            ER=emmployee_object.employee_resume_pdf
+            ECP=emmployee_object.employee_citizenship_photo
+            EPP=emmployee_object.employee_pp_photo
+            
+            username_field=form.fields['username']
+
+            username_field.required=False
+            username_field.disabled=True
+
+            form.fields['discord_user_id'].required=False
+            form.fields['job_title'].required=False
+            form.fields['employee_citizenship_number'].required=False
+            form.fields['employee_citizenship_photo'].required=False
+            form.fields['employee_resume_pdf'].required=False
+            form.fields['employee_pp_photo'].required=False
+
+            
+            if form.is_valid():
+                print('form valid')
+                with transaction.atomic():
+                    
+                    userDb=form.save(commit=False)
+                    print(userDb.id)
+                    userDb.id= pk
+                    
+                    userDb.save()
+                    userDb.first_name = request.POST.get('first_name', userDb.first_name)
+                    userDb.last_name = request.POST.get('last_name', userDb.last_name)
+            
+                    emmployee_object.discord_user_id=DUID
+                    emmployee_object.job_title=JT
+                    emmployee_object.phone_number=request.POST.get('phone_number')
+                    emmployee_object.date_of_birth=request.POST.get('date_of_birth')
+                    emmployee_object.gender=request.POST.get('gender')
+                    emmployee_object.employee_citizenship_number=ECN
+                    emmployee_object.employee_citizenship_photo=ECP
+                    emmployee_object.employee_resume_pdf=ER
+                    emmployee_object.employee_pp_photo=EPP
+                    emmployee_object.save()    
+                    form.save()
+
+                messages.success(request,'Profile updated')
+                return redirect('admin_home')
+            else:
+                messages.success(request,form.errors)
+                return redirect('admin_home')
+        except Exception as e:
+            print(e)
+            messages.success(request,e)
+            return redirect('admin_home')            
+
 class MyTokenObtainPairView(TokenObtainPairView):
     @classmethod
     def post(self,request,*args,**kwargs):
@@ -255,3 +395,5 @@ class MyTokenObtainPairView(TokenObtainPairView):
         data=serializer.data
         data['tokens']={"refresh":str(Refresh),"access":str(Access)}
         return Response(data)
+    
+

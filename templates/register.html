@@ -2,16 +2,14 @@
 
 {% block content%}
 
-{%if user.is_authenticated%}
-    <h1>hello</h1>
-{%else%}
+
 <div class="container">
     <br>
     
         <div class="col-md-6 offset-md-4">
             <div class="card" style="width: 30rem;">
                 <div class="card-body">
-                    <form method="post" action="{% url 'register_user'%}" enctype="multipart/form-data">
+                    <form method="post" action="" enctype="multipart/form-data">
                         {% csrf_token%}
                         {{form.as_p}}
                         <button type="submit" class="btn btn-primary col-md-3 offset-md-4">Submit</button>
@@ -29,7 +27,6 @@
 </div>
 
 
-{%endif%}
 
 
 {%endblock%}

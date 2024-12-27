@@ -1,0 +1,35 @@
+{%extends "private_content.html"%}
+
+{%block private_content%}
+<div class="container" style="width: 50rem;">
+
+            <h1>All Tasks</h1>
+            <table class="table table-bordered table" >
+                <thead class="table table-dark">
+                
+                <tr>
+                    <th>Checkin id</th>
+                    <th>Task</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for task in task_data%}
+                    <tr>
+                        <td><a href="#" class="link-dark text-decoration-underline">{{task.checkin}}</a></td>
+                        <td>{{task.task}}</td>
+                        {%if task.completed%}
+                            <td class="text-success">Completed</td>
+                        {%else%}
+                            <td class="text-danger">Not Completed</td>
+                        {%endif%}
+                        
+                    </tr>
+                    {%endfor%}
+                    
+                </tbody>
+            
+            </table>
+</div>
+
+{%endblock%}

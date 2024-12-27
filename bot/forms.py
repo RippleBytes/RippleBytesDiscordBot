@@ -73,6 +73,7 @@ class LeaveApprovalForm(forms.ModelForm):
 
 
 class RegistrationForm(UserCreationForm):
+    username=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'abc@abc.com','name':'email'}))
     email=forms.EmailField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'abc@abc.com','name':'email'}))
     first_name=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'John','name':'first_name'}))
     last_name=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'Doe','name':'last_name'}))

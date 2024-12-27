@@ -53,7 +53,7 @@ class CheckinRecord(models.Model):
     checkout_time = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.username} ({self.user_id})"
+        return f"{self.username}({self.user_id})"
 
 class TaskRecord(models.Model):
     checkin = models.ForeignKey(CheckinRecord, related_name='tasks', on_delete=models.CASCADE)
