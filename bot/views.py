@@ -134,13 +134,13 @@ class RegisterUser(View):
                     return redirect('admin_home')
             
             else:
-                messages.success(request,form.errors)
-                return redirect('register_user')
+                return render(request,'register.html',{'form':form})
                 
         
         except Exception as e:
                 messages.success(request,e)
-                return redirect('register_user')
+                return render(request,'register.html',{'form':form})
+                
 
 class PersonalWorkRecord(View):
     permission_classes=[permissions.IsAuthenticated]

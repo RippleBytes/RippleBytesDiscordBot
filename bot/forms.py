@@ -1,7 +1,9 @@
 from django import forms
 from .models import LeaveRequest,Employee,BankDetails
+
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from django.core.exceptions import ValidationError
 leave_status=[
         ('Requested','Requested'),
         ('Approved','Approved'),
@@ -110,6 +112,55 @@ class RegistrationForm(UserCreationForm):
         self.fields['password2'].label = ''
         self.fields['password2'].help_text = '<span class="form-text text-muted"><small>Enter the same password as before, for verification.</small></span>'
 
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if self.errors.get(field_name):
+                field.widget.attrs['class'] += ' is-invalid'
+
+    def clean(self):
+            super(RegistrationForm,self).clean()
+            email = self.cleaned_data.get('email')
+            username = self.cleaned_data.get('username')
+            password = self.cleaned_data.get("password")
+            confirm_password = self.cleaned_data.get("confirm_password")
+
+            if User.objects.filter(email=email).exists():
+                raise ValidationError("Email already exists")
+                 
+            if User.objects.filter(username=username).exists():
+                    raise ValidationError("Username already exists")
+
+            if password and confirm_password and password != confirm_password:
+                    raise ValidationError("passwords dont match")
+            return self.cleaned_data
+             
+        # def clean_email(self):
+        #         email = self.cleaned_data.get('email')
+        #         if User.objects.filter(email=email).exists():
+        #             self._errors['email'] = self.error_class([
+        #         'Email already taken'])
+        #         return self.cleaned_data
+
+        # def clean_username(self):
+        #         username = self.cleaned_data.get('username')
+        #         if User.objects.filter(username=username).exists():
+        #             self._errors['username'] = self.error_class([
+        #         'User name already taken'])
+        #         return self.cleaned_data
+
+
+        # def clean(self):
+        #         cleaned_data = super().clean()
+        #         password = cleaned_data.get("password")
+        #         confirm_password = cleaned_data.get("confirm_password")
+
+        #         if password and confirm_password and password != confirm_password:
+        #             self._errors['password2'] = self.error_class([
+        #         'passwords dont match'])
+
+        #         return self.cleaned_data
 
 
 class EmployeeBankDetailForm(forms.ModelForm):

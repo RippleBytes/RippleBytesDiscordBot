@@ -26,14 +26,7 @@
                   <li><strong>Citizenship Number:</strong>**-**-**-*****</li>
                 {%endif%}
               </ul>
-             
-             {%if request.user.id == employee_data.user%}
               <a href="{%url 'admin_home'%}" class="btn btn-primary">Home</a>
-              <a href="{% url 'edit_personal_info' user_data.id.value%}" class="btn btn-secondary">Edit</a>
-              {%else%}
-              <a href="{%url 'admin_home'%}" class="btn btn-primary">Home</a>
-            {%endif%}
-            
         </div>
         
     </div>
