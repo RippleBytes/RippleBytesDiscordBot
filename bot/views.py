@@ -81,7 +81,7 @@ class LeaveApproval(View):
         if form.is_valid():
                 try:
                     form.save()
-                    return redirect('admin_home')
+                    return redirect('employee_leave')
                 except Exception as e:
                     return HttpResponse (e)
         else:

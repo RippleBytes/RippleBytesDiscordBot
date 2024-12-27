@@ -80,6 +80,8 @@ class RegistrationForm(UserCreationForm):
     first_name=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'John','name':'first_name'}))
     last_name=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'Doe','name':'last_name'}))
     discord_user_id=forms.CharField(max_length=18,label="Discord User Id",widget=forms.widgets.TextInput(attrs={'class':'form-control','name':'discord_user_id'}))
+    password1=forms.CharField(required=True,label='Password',help_text = 'heklo',widget=forms.widgets.PasswordInput(attrs={'class':'form-control'}))
+    password2=forms.CharField(required=True,label='Confirm Password',widget=forms.widgets.PasswordInput(attrs={'class':'form-control'}))
     job_title=forms.CharField(max_length=20,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'Full-stack developer,Frontend developer,Backend developer','name':'job_title'}))
     phone_number=forms.CharField(max_length=10,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'9841000000','name':'phone_number'}))
     date_of_birth=forms.DateField(label='Date of Birth(A.D.)',widget=forms.widgets.DateInput(attrs={'class':'form-control','type':'date','name':'date_of_birth'}))
@@ -88,30 +90,16 @@ class RegistrationForm(UserCreationForm):
     employee_citizenship_photo=forms.ImageField(required=False,widget=forms.FileInput(attrs={'class':'form-control','placeholder':'.jpg, .jpeg, .png, .gif'}))
     employee_resume_pdf=forms.FileField(required=False,widget=forms.FileInput(attrs={'class':'form-control','placeholder':'.pdf'}))
     employee_pp_photo=forms.ImageField(required=False,widget=forms.FileInput(attrs={'class':'form-control','placeholder':'.jpg, .jpeg, .png, .gif'}))
+    
     class Meta:
         model=User
         fields=('username','email','first_name','last_name','discord_user_id','job_title','phone_number','password1','password2')
-
-
-    def __init__(self, *args, **kwargs):
-        super(RegistrationForm, self).__init__(*args, **kwargs)
-            
-        self.fields['username'].widget.attrs['class'] = 'form-control'
-        # self.fields['username'].widget.attrs['placeholder'] = 'User Name'
-        self.fields['username'].label = 'Username'
-        # self.fields['username'].disabled=True
-        self.fields['username'].help_text = '<span class="form-text text-muted"><small>Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</small></span>'
-    
-        self.fields['password1'].widget.attrs['class'] = 'form-control'
-        self.fields['password1'].widget.attrs['placeholder'] = 'Password'
-        self.fields['password1'].label = ''
-        self.fields['password1'].help_text = '<ul class="form-text text-muted small"><li>Your password can\'t be too similar to your other personal information.</li><li>Your password must contain at least 8 characters.</li><li>Your password can\'t be a commonly used password.</li><li>Your password can\'t be entirely numeric.</li></ul>'
-
-        self.fields['password2'].widget.attrs['class'] = 'form-control'
-        self.fields['password2'].widget.attrs['placeholder'] = 'Confirm Password'
-        self.fields['password2'].label = ''
-        self.fields['password2'].help_text = '<span class="form-text text-muted"><small>Enter the same password as before, for verification.</small></span>'
-
+        help_texts = {
+            'username': None,
+            'email': None,
+            'password1':'<ul class="form-text text-muted small"><li>Your password can\'t be too similar to your other personal information.</li><li>Your password must contain at least 8 characters.</li><li>Your password can\'t be a commonly used password.</li><li>Your password can\'t be entirely numeric.</li></ul>',
+            'password2':'<span class="form-text text-muted"><small>Enter the same password as before, for verification.</small></span>'
+        }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
