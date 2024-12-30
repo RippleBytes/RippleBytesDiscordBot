@@ -105,3 +105,11 @@ class BankDetails(models.Model):
     def save(self,*args, **kwargs):
         self.clean()
         super(BankDetails,self).save(*args,**kwargs)
+
+class LateArrival(models.Model):
+    user_id=models.CharField(max_length=100)
+    reason=models.CharField(max_length=100)
+    time_duration=models.CharField(max_length=100)
+
+    def __str__(self):
+        return f" Reason:{self.reason}, time:{self.reason} ,user_id:{self.user_id} "

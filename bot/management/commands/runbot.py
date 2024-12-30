@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from django.core.management.base import BaseCommand
-from bot.models import CheckinRecord, TaskRecord, BreakRecord,LeaveRequest,Employee
+from bot.models import CheckinRecord, TaskRecord, BreakRecord,LeaveRequest,Employee,LateArrival
 from django.utils.timezone import now
 from django.db import transaction
 from asgiref.sync import sync_to_async
@@ -10,6 +10,8 @@ from datetime import datetime
 from enum import Enum
 import pytz
 from django.conf import settings
+import re
+
 DISCORD_TOKEN = settings.DISCORD_TOKEN
 ADMIN_CHANNEL_ID=settings.ADMIN_CHANNEL_ID
 LEAVE_CHANNEL_ID=settings.LEAVE_CHANNEL_ID
@@ -22,7 +24,29 @@ allowed_date_current=datetime.now().year
 allowed_date_list=(allowed_date_current,(allowed_date_current+1))
 
 
+def check_alphabet(time_duration):
+    letter_check = bool(re.search(r'[a-zA-Z]', time_duration))
+    if letter_check:
+        return None
     
+    return time_duration
+
+def late_arrival_time_addhour(time_duration):
+    try:
+    
+        if time_duration==0:
+            return None
+        
+        if time_duration==1:
+            print(time_duration+1)
+            return_time_duration=str(time_duration)+" hour"
+            return return_time_duration
+        else:
+            return_time_duration=str(time_duration)+" hours"
+            return return_time_duration
+    except:
+        return None
+
 def leave_type_value(leave_type):
     if leave_type=='1':
         leave_type='Unpaid Leave'
@@ -337,6 +361,86 @@ class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
             )
                 
 
+class LateArrivalModal(discord.ui.Modal,title='CheckinDelay'):
+    reason_late_duration=discord.ui.TextInput(
+        style=discord.TextStyle.paragraph,
+        label='Reason for late arrival',
+        required=True,
+        placeholder='State your reason for late arrival',
+        max_length=100,
+    )
+
+    time_duration=discord.ui.TextInput(
+        style=discord.TextStyle.paragraph,
+        label='State time(1 hour, 1.5 hours..)',
+        required=True,
+        placeholder="1, 1.5, 1.25, 1.75",
+        max_length=4,
+    )
+    def __init__(self,user):
+        super().__init__()
+        self.user=user
+    
+
+    async def on_submit(self, interaction:discord.Interaction):
+        reason_late_duration=self.reason_late_duration.value.strip()
+        time_duration=self.time_duration.value.strip()
+        valid_time_duration=check_alphabet(time_duration)
+
+        if valid_time_duration == None:
+             await interaction.response.send_message(
+                "❌ Unable to post in discord due to corrupted data!! Please try again with valid numbers.",
+                ephemeral=True
+            )
+        
+        format_time_duration=late_arrival_time_addhour(float(time_duration))
+
+        
+
+        try:
+            
+            if format_time_duration and valid_time_duration is not None:
+                late_arrival=await sync_to_async(LateArrival.objects.create)(
+                    user_id=str(self.user.id),
+                    reason=reason_late_duration,
+                    time_duration=str(format_time_duration) ,
+                    
+                )
+
+                embed=discord.Embed(
+                    title="Checkin delay !!",
+                    color=discord.Color.light_grey(),
+                )
+                embed.set_author(name=self.user.name)
+                embed.add_field(name='Reason for late arrival',value=late_arrival.reason,inline=False)
+                embed.add_field(name="Time duration",value=late_arrival.time_duration)
+                
+                await interaction.channel.send(embed=embed)
+                
+
+                await interaction.response.send_message(
+                    " ✅ Successfully posted in discord",
+                    ephemeral=True
+                )
+            else:
+                print (valid_time_duration)
+                await interaction.response.send_message(
+                "❌ Unable to post in discord due to corrupted data!! Please try again with valid numbers.",
+                ephemeral=True
+            )
+
+
+
+        except Exception as e:
+            traceback.print_exc()
+            await interaction.response.send_message(
+                "❌ Unable to post in discord!! Please try again.",
+                ephemeral=True
+            )
+
+
+    
+
 class Command(BaseCommand):
     help = "Run the Discord bot"
     def handle(self, *args, **options):
@@ -487,5 +591,23 @@ class Command(BaseCommand):
             username=str(interaction.user.name)
             await interaction.response.send_message(f"[Visit the register page]({REDIRECT_URL}?discord_user_id={id}&discord_username={username})",ephemeral=True)
 
+        @bot.tree.command(name='late_arrival',description='Send a message for late checkin!')
+        async def late_arrival_cmd(interaction:discord.Interaction):
+            checkin_record = await CheckinRecord.objects.filter(
+                user_id=str(interaction.user.id), checkout_time__isnull=True
+            ).afirst()
+
+            if checkin_record:
+                await interaction.response.send_message(
+                        "❌ You have already checked in!!",
+                        ephemeral=True
+                    )
+
+
+            modal=LateArrivalModal(interaction.user)
+            await interaction.response.send_modal(modal)
+
+       
+       
         # Run the bot
         bot.run(DISCORD_TOKEN)
