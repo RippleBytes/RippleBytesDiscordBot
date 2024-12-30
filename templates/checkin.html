@@ -1,0 +1,36 @@
+{% extends 'private_content.html'%}
+
+
+{%block private_content %}
+<div class="container">
+
+    <h1>All Tasks</h1>
+    <table class="table table-bordered table" style="width: 60rem;">
+        <thead class="table table-dark">
+        
+        <tr>
+            <th>Checkin id</th>
+            <th>Discord user id</th>
+            <th>Username</th>
+            <th>Checkin time</th>
+            <th>Checkout time</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for data in checkin_record%}
+            <tr>
+                <td>{{data.id}}</td>
+                <td>{{data.user_id}}</td>
+                <td>{{data.username}}</td>
+                <td>{{data.checkin_time}}</td>
+                <td>{{data.checkout_time}}</td>
+                
+                
+            </tr>
+            
+        </tbody>
+    {%endfor%}
+    </table>
+</div>
+
+{%endblock%}

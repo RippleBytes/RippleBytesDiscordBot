@@ -11,11 +11,7 @@ format="%Y-%m-%d "
 def leave_request_status_updated(sender,instance,created,**kwargs):
     if not created:
         if instance.status=='Approved':
-            
-           
-    
             discord_channel_message={
-                    "content": "LEAVE APPROVED!!",
                     "embeds": 
                     [
                         {

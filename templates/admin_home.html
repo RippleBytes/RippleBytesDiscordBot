@@ -1,0 +1,35 @@
+{% extends 'private_content.html'%}
+
+{%block private_content%}
+<div class="container">
+    <table class="table table-bordered table">
+              <thead class="table table-dark">
+                <tr>
+                  <th>Employee ID</th>
+                  <th>Discord Username</th>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>Date Joined</th>
+  
+                </tr>
+              </thead>
+              <tbody>
+                {%if data%}
+                {%for employee in data%}
+                  <tr>
+                      <td>{{employee.id}}</td>
+                      <td>{{employee.username}}</td>
+                      <td>{{employee.first_name}} {{employee.last_name}}</td>
+                      <td>{{employee.email}}</td>
+                      <td>{{employee.date_joined}}</td>
+                     
+                      
+                  </tr>
+                  {%endfor%}
+                  {%endif%}
+              </tbody>
+             
+    </table>
+  </div>
+
+{%endblock%}

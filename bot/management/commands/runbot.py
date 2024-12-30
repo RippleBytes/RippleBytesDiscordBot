@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from django.core.management.base import BaseCommand
-from bot.models import CheckinRecord, TaskRecord, BreakRecord,LeaveRequest
+from bot.models import CheckinRecord, TaskRecord, BreakRecord,LeaveRequest,Employee
 from django.utils.timezone import now
 from django.db import transaction
 from asgiref.sync import sync_to_async
@@ -13,6 +13,7 @@ from django.conf import settings
 DISCORD_TOKEN = settings.DISCORD_TOKEN
 ADMIN_CHANNEL_ID=settings.ADMIN_CHANNEL_ID
 LEAVE_CHANNEL_ID=settings.LEAVE_CHANNEL_ID
+REDIRECT_URL=settings.REDIRECT_URL
 
 
 
@@ -21,6 +22,7 @@ allowed_date_current=datetime.now().year
 allowed_date_list=(allowed_date_current,(allowed_date_current+1))
 
 
+    
 def leave_type_value(leave_type):
     if leave_type=='1':
         leave_type='Unpaid Leave'
@@ -312,8 +314,9 @@ class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
                         embed.add_field(name="No. of Leave Days :",value=(leave_request.end_date-leave_request.start_date).days+1,inline=False)
 
                         
-                        channel=interaction.guild.get_channel(1314130782503043103)
-                    
+                        channel=interaction.guild.get_channel(int(ADMIN_CHANNEL_ID))
+                        #ADMIN_CHANNEL_ID needs to be converted into int, else return NONE
+                        
                         await channel.send(embed=embed)
 
                         
@@ -333,8 +336,6 @@ class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
                 "❌ Failed to initiate a request ! Please provide valid dates"
             )
                 
-            
-        
 
 class Command(BaseCommand):
     help = "Run the Discord bot"
@@ -343,8 +344,7 @@ class Command(BaseCommand):
         intents.messages = True
         intents.message_content = True
         bot = commands.Bot(command_prefix="!", intents=intents)
-
-        bot = commands.Bot(command_prefix="!",intents=intents)
+    
         
 
         @bot.event
@@ -379,16 +379,11 @@ class Command(BaseCommand):
             
             channel=bot.get_channel(ADMIN_CHANNEL_ID)
         
-            # await channel.send('admin')
-            # channel=bot.get_channel(1314130782503043103)
-            channel=bot.get_channel(1314130782503043103)
-        
-            # await channel.send('admin')
             leave_request= await LeaveRequest.objects.filter(
                 
                 user_id=str(interaction.user.id)
             ).afirst()
-            # await channel.send('admin heloo.')
+    
             
                 
             modal=LeaveRequestModal(interaction.user)
@@ -485,6 +480,12 @@ class Command(BaseCommand):
                             "❌ Failed to end the break! Please try again.",
                             ephemeral=True
                         )
+
+        @bot.tree.command(name="user_register",description='Create an employee login account!')
+        async def user_register_cmd(interaction:discord.Interaction):
+            id=interaction.user.id
+            username=str(interaction.user.name)
+            await interaction.response.send_message(f"[Visit the register page]({REDIRECT_URL}?discord_user_id={id}&discord_username={username})",ephemeral=True)
 
         # Run the bot
         bot.run(DISCORD_TOKEN)

@@ -1,0 +1,30 @@
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{% url 'admin_home'%}">RippleBytes</a>
+      
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          {%if user.is_authenticated and user.is_superuser%}
+           
+            <li class="nav-item"><a href="{% url 'logout'%}" class="nav-link">Logout</a></li>
+            <li class="nav-item"><a href="{% url 'employee_leave'%}" class="nav-link">Leave record</a></li>
+            <li class="nav-item"><a href="{%url 'task_record'%}" class="nav-link">Task Record</a></li>
+            <li class="nav-item"><a href="{% url 'all_checkin_record'%}" class="nav-link">Checkin Record</a></li>
+
+          {%elif user.is_authenticated and not user.is_superuser%}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">My profile</a>
+            <ul class="dropdown-menu tex">
+                <li><a class="dropdown-item" href="{% url 'personal_profile' user.id%}">Profile</a></li>        
+                <li><a class="dropdown-item nav-link" href="{% url 'logout'%}">Logout</a></li>
+            </ul>
+        </li>
+            
+          {% else%}
+            <li class="nav-item"><a href="{% url 'admin_home'%}" class="nav-link">Login</a></li>
+            <li class="nav-item"><a href="{% url 'register_user'%}" class="nav-link">Register</a></li>
+          {%endif%}
+    
+      </div>
+    </div>
+  </nav>

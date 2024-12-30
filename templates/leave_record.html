@@ -1,0 +1,70 @@
+{%extends 'private_content.html'%}
+
+{%block private_content%}
+<div class="container">
+    <h1>
+        Leave record 
+    </h1>
+    <ul >
+       
+        <li class="nav-item dropdown" style="list-style-type: none;">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Filter by</a>
+            
+            <ul class="dropdown-menu tex">
+                <li><a class="dropdown-item" href="{% url 'status_filter' 'Approved'%}">Approved</a></li>
+                <li><a class="dropdown-item" href="{% url 'status_filter' 'Rejected'%}">Rejected</a></li>
+                <li><a class="dropdown-item" href="{% url 'status_filter' 'Requested'%}">Requested</a></li>
+                <li><a class="dropdown-item" href="{% url 'admin_home'%}">#</a></li>
+            </ul>
+        </li>
+    </ul>
+    <table class="table table-bordered table">
+        <thead class="table table-dark">
+          <tr>
+            <th>Leave id</th>
+            <th>User id</th>
+            <th>Username</th>
+            <th>Leave start</th>
+            <th>Leave end</th>
+            <th>Leave type</th>
+            <th>Status</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%if Leavedata%}
+        {% for user in Leavedata%}
+        <tr>
+              <td><a href='{% url "personal_leave" user.id%}' class="link-dark text-decoration-underline">{{user.id}}</a></td>
+              <td>{{user.user_id}}</td>
+              <td>{{user.username}}</td>
+              <td>{{user.start_date}}</td>
+              <td>{{user.end_date}}</td>
+              <td>{{user.leave_type}}</td>
+              {%if user.status == 'Approved'%}
+              <td class="text-success">{{user.status}}</td>
+              {%elif user.status == 'Rejected'%}
+              <td class="text-danger">{{user.status}}</td>
+              {%else%}
+              <td class="text-primary">{{user.status}}</td>
+              {%endif%}
+              <td>{{user.reason}}</td>
+            </a>
+            {% endfor%}
+          </tr>
+          {%else%}
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+          {%endif%}
+        
+        </tbody>
+      </table>
+</div>
+
+{%endblock%}

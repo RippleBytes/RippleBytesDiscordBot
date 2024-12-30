@@ -1,0 +1,34 @@
+{% extends 'master.html'%}
+
+{% block content%}
+    {% if user.is_authenticated%}
+        
+        {% block private_content%}
+
+
+
+        {%endblock%}
+    {%else%}
+            <div class="col-md-6 offset-md-5">
+                <form method="POST" action="{% url 'login'%}">
+                {% csrf_token %}
+                    <br>
+                    <div class="card" style="width: 18rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">Login</h5>
+                        <input type="text" class="form-control" placeholder="Username" name="username">
+                            <br>
+                            <input type="password" class="form-control" placeholder="Password" name="password">
+                            <br>
+                        <button type="submit" class=" btn btn-primary" >Submit</button>
+                    </div>
+                    </div>
+            </form>
+            </div>
+    {%endif%}
+
+
+
+
+
+{%endblock%}
