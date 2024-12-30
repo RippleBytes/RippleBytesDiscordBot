@@ -38,7 +38,6 @@ def late_arrival_time_addhour(time_duration):
             return None
         
         if time_duration==1:
-            print(time_duration+1)
             return_time_duration=str(time_duration)+" hour"
             return return_time_duration
         else:
