@@ -6,8 +6,7 @@ from import_export.admin import ImportExportModelAdmin
 from unfold.admin import ModelAdmin
 from unfold.forms import AdminPasswordChangeForm,UserCreationForm,UserChangeForm
 from unfold.contrib.import_export.forms import ImportForm,ExportForm
-from unfold.admin import TabularInline
-from unfold.admin import ModelAdmin
+from unfold.admin import TabularInline,ModelAdmin
 from unfold.contrib.filters.admin import RangeDateFilter, RangeDateTimeFilter
 from unfold.views import UnfoldModelAdminViewMixin
 from django.views.generic import TemplateView
