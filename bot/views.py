@@ -35,7 +35,7 @@ class LoginUser(View):
                 messages.success(request,"Invalid credentials")
                 return redirect('login')
         except Exception as e:
-            print(e)
+            messages.success(request,e)
             return HttpResponse(e)
               
 class LogoutUser(View):
@@ -190,8 +190,7 @@ class PersonalProfileView(View):
             return render(request,'personal_profile.html',{'employee_data':employee_serializer.data,'user_data':user_serializer})
             
         except Exception as e:
-            # print(e)
-            # return HttpResponse(e)
+            
             messages.success(request,'User not found')
             return redirect('admin_home')
         
@@ -316,7 +315,7 @@ class EditPersonalInfo(View):
             else:
                 return render('admin_home')
         except Exception as e:
-            print(e)
+            messages.success(request,e)
             return redirect('admin_home')
             
     def post(self,request,pk):
@@ -326,19 +325,17 @@ class EditPersonalInfo(View):
 
             
             emmployee_object=Employee.objects.get(user=user_object)
-            print(emmployee_object)
+           
 
             DUID=emmployee_object.discord_user_id
             JT=emmployee_object.job_title
             ECN=emmployee_object.employee_citizenship_number
-            print(DUID,JT,ECN)
-
             ER=emmployee_object.employee_resume_pdf
             ECP=emmployee_object.employee_citizenship_photo
             EPP=emmployee_object.employee_pp_photo
             
+           
             username_field=form.fields['username']
-
             username_field.required=False
             username_field.disabled=True
 
@@ -351,11 +348,9 @@ class EditPersonalInfo(View):
 
             
             if form.is_valid():
-                print('form valid')
                 with transaction.atomic():
                     
                     userDb=form.save(commit=False)
-                    print(userDb.id)
                     userDb.id= pk
                     
                     userDb.save()
@@ -380,7 +375,7 @@ class EditPersonalInfo(View):
                 messages.success(request,form.errors)
                 return redirect('admin_home')
         except Exception as e:
-            print(e)
+        
             messages.success(request,e)
             return redirect('admin_home')            
 
