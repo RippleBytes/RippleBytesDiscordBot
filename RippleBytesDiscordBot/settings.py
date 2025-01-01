@@ -14,6 +14,9 @@ from django.conf import settings
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
+from django.templatetags.static import static
+from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 
 
 
@@ -35,6 +38,11 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    "unfold", 
+    "unfold.contrib.filters",  
+    "unfold.contrib.forms", 
+    "unfold.contrib.inlines",
+    "unfold.contrib.import_export",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,9 +53,76 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'bot',
+    'django_browser_reload',
+    'import_export'
     
 ]
-
+UNFOLD = {
+    "SITE_TITLE": "RippleBytes",
+    "SITE_HEADER": "RippleBytes",
+     "SIDEBAR": {
+        "show_search": False,  # Search in applications and models names
+        "show_all_applications": False,  # Dropdown with all applications and models
+        "navigation": [
+            {
+                
+                "separator": True,  # Top border
+                "collapsible": False,  # Collapsible group of links
+                "items": [
+                    {
+                        "title": _("Dashboard"), 
+                        "icon": "menu",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:index"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Users"), 
+                        "icon": "person",
+                        "link": reverse_lazy("admin:auth_user_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Groups"), 
+                        "icon": "people",
+                        "link": reverse_lazy("admin:auth_group_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Bank Details"), 
+                        "icon": "savings",
+                        "link": reverse_lazy("admin:bot_bankdetails_changelist"),
+                    },
+                    {
+                        "title": _("Break Record"), 
+                        "icon": "logout",
+                        "link": reverse_lazy("admin:bot_breakrecord_changelist"),
+                    },
+                    {
+                        "title": _("Checkin Record"), 
+                        "icon": "check",
+                        "link": reverse_lazy("admin:bot_checkinrecord_changelist"),
+                    },
+                    {
+                        "title": _("Employees"), 
+                        "icon": "badge",
+                        "link": reverse_lazy("admin:bot_employee_changelist"),
+                    },
+                    {
+                        "title": _("Leave request"), 
+                        "icon": "exit_to_app",
+                        "link": reverse_lazy("admin:bot_leaverequest_changelist"),
+                    },
+                    {
+                        "title": _("Task_record"), 
+                        "icon": "keep",  
+                        "link": reverse_lazy("admin:bot_taskrecord_changelist"),
+                    },
+                    
+                ],
+            },
+        ],
+    },
+}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -57,7 +132,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'RippleBytesDiscordBot.middleware.TimezoneMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware'
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = 'RippleBytesDiscordBot.urls'
