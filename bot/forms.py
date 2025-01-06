@@ -88,7 +88,7 @@ class RegistrationForm(UserCreationForm):
     gender=forms.ChoiceField(choices=gender,required=False,widget=forms.widgets.Select(attrs={'class':'form-control','name':'gender'}))
     employee_citizenship_number=forms.CharField(max_length=14,widget=forms.TextInput(attrs={'class':'form-control','placeholder':'**-**-**-*****','name':'employee_citizenship_number'}))
     employee_citizenship_photo=forms.ImageField(required=False,widget=forms.FileInput(attrs={'class':'form-control','placeholder':'.jpg, .jpeg, .png, .gif'}))
-    employee_resume_pdf=forms.FileField(required=False,widget=forms.FileInput(attrs={'class':'form-control','placeholder':'.pdf'}))
+    employee_resume_pdf=forms.FileField(required=False,widget=forms.ClearableFileInput(attrs={'class':'form-control','placeholder':'.pdf','accept':'.pdf'}))
     employee_pp_photo=forms.ImageField(required=False,widget=forms.FileInput(attrs={'class':'form-control','placeholder':'.jpg, .jpeg, .png, .gif'}))
     
     class Meta:
@@ -123,33 +123,17 @@ class RegistrationForm(UserCreationForm):
             if password and confirm_password and password != confirm_password:
                     raise ValidationError("passwords dont match")
             return self.cleaned_data
-             
-        # def clean_email(self):
-        #         email = self.cleaned_data.get('email')
-        #         if User.objects.filter(email=email).exists():
-        #             self._errors['email'] = self.error_class([
-        #         'Email already taken'])
-        #         return self.cleaned_data
+    
+    def clean_file(self):
+        employee_citizenship_photo=self.cleaned_data.get("employee_citizenship_photo")
+        employee_resume_pdf=self.cleaned_data.get("employee_resume_pdf")
+        employee_pp_photo=self.cleaned_data.get("employee_pp_photo")
+        
+        if not employee_citizenship_photo and employee_resume_pdf and employee_pp_photo:
+             raise forms.ValidationError("Please provide all files")
+        return employee_citizenship_photo,employee_pp_photo,employee_resume_pdf
 
-        # def clean_username(self):
-        #         username = self.cleaned_data.get('username')
-        #         if User.objects.filter(username=username).exists():
-        #             self._errors['username'] = self.error_class([
-        #         'User name already taken'])
-        #         return self.cleaned_data
-
-
-        # def clean(self):
-        #         cleaned_data = super().clean()
-        #         password = cleaned_data.get("password")
-        #         confirm_password = cleaned_data.get("confirm_password")
-
-        #         if password and confirm_password and password != confirm_password:
-        #             self._errors['password2'] = self.error_class([
-        #         'passwords dont match'])
-
-        #         return self.cleaned_data
-
+    
 
 class EmployeeBankDetailForm(forms.ModelForm):
     
