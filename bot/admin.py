@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import User,Group
 from django.contrib.auth.admin import UserAdmin,GroupAdmin
-from .models import CheckinRecord,TaskRecord,BreakRecord,LeaveRequest,Employee,BankDetails
+from .models import CheckinRecord,TaskRecord,BreakRecord,LeaveRequest,BankDetail,User
 from import_export.admin import ImportExportModelAdmin
 from unfold.admin import ModelAdmin
 from unfold.forms import AdminPasswordChangeForm,UserCreationForm,UserChangeForm
@@ -19,16 +19,20 @@ class MyCustomAdminView(UnfoldModelAdminViewMixin, TemplateView):
     permission_required = "(auth.view_user,)"
     template_name = "templates/admin/custom_page.html"
 admin.site.unregister(Group)
-admin.site.unregister(User)
 
 
+class TaskRecordInline(TabularInline):
+    model=TaskRecord
+    tab=True
+    fields=['task','completed']
+    readonly_fields=('task','completed',)
 
 @admin.register(User)
-class DjangoUserAdmin(UserAdmin,ModelAdmin):
-    warn_unsaved_form=True
-    form=UserChangeForm
-    add_form=UserCreationForm
-    change_password_form=AdminPasswordChangeForm
+class CustomAdmin(ModelAdmin):
+    fields=("id",'discord_user_id')
+
+    inlines=[TaskRecordInline]
+    
 
     
 
@@ -37,27 +41,23 @@ class DjangoUserAdmin(UserAdmin,ModelAdmin):
 class DjangoGroupAdmin(GroupAdmin,ModelAdmin):
     warn_unsaved_form=True
 
-class TaskRecordInline(TabularInline):
-    model=TaskRecord
-    tab=True
-    fields=['task','completed']
-    readonly_fields=('task','completed',)
+
     
 
 @admin.register(CheckinRecord)
 class CheckinRecordAdmin(ModelAdmin,ImportExportModelAdmin):
     
-    list_display = ('username', 'checkin_time', 'checkout_time')
+    list_display = ('user','username', 'checkin_time', 'checkout_time')
     import_form_class=ImportForm
     export_form_class=ExportForm
 
-    inlines=[TaskRecordInline]
+   
 
 
 
 
 class TaskRecordAdmin(ModelAdmin,ImportExportModelAdmin):
-    list_display = ('checkin', 'task', 'completed')
+    list_display = ('user', 'task', 'completed')
     import_form_class=ImportForm
     export_form_class=ExportForm
     
@@ -65,10 +65,9 @@ class TaskRecordAdmin(ModelAdmin,ImportExportModelAdmin):
     actions=['set_status_completed','set_status_incomplete']
     
     @action(description="Change task status to complete")
-    
-    
     def set_status_completed(ModelAdmin,request,queryset):
         queryset.update(completed=True)
+
 
     @action(description="Change task status to incomplete")
     def set_status_incomplete(ModelAadmin,request,queryset):
@@ -93,8 +92,8 @@ class BreakRecordAdmin(ModelAdmin,ImportExportModelAdmin):
 
 @admin.register(LeaveRequest)
 class LeaveRequestAdmin(ModelAdmin,ImportExportModelAdmin):
-     list_display=('user_id','username','leave_type','reason','status','start_date','end_date')
-     readonly_fields=('user_id','username','leave_type','reason','start_date','end_date')
+     list_display=('user','username','leave_type','reason','status','start_date','end_date')
+     readonly_fields=('user','username','leave_type','reason','start_date','end_date')
      exclude=('id',)
      
      import_form_class=ImportForm
@@ -110,15 +109,9 @@ class LeaveRequestAdmin(ModelAdmin,ImportExportModelAdmin):
      
         
         
-@admin.register(Employee)
-class EmployeeRegisterAdmin(ModelAdmin,ImportExportModelAdmin):
-    list_display=('user','discord_user_id','job_title','phone_number')
-    exclude=('id',)
-    import_form_class=ImportForm
-    export_form_class=ExportForm
 
-@admin.register(BankDetails)
-class BankDetailsRegisterAdmin(ModelAdmin,ImportExportModelAdmin):
+@admin.register(BankDetail)
+class BankDetailRegisterAdmin(ModelAdmin,ImportExportModelAdmin):
     list_display=('user','bank_name','bank_branch_location','employee_bank_account_name','employee_bank_account_number')
     exclude=('id',)
     import_form_class=ImportForm

@@ -6,26 +6,28 @@
     <div class="card text-center shadow" style="width: 20rem;">
         <div class="card-body">
             <div class="mb-3">
-              <img src="{{ employee_data.employee_pp_photo }}" alt="{{ employee.name }}" style="width: 100px; height: 100px;">
+              <img src="{{  user_data.employee_pp_photo }}" alt="{{ employee.name }}" style="width: 100px; height: 100px;">
             </div>
-            <h5 class="card-title">{{ user_data.username.value }}</h5>
-            <p class="text-muted">{{employee_data.job_title}}</p>
+            <h5 class="card-title">{{ user_data.username }}</h5>
+            <p class="text-muted">{{user_data.job_title}}</p>
             <hr>
             <ul class="list-unstyled text-start">
-                <li><strong>Email:</strong> {{ user_data.email.value }}</li>
-                <li><strong>Contact Number:</strong> {{employee_data.phone_number}}</li>
-                <li><strong>Employee ID:</strong> {{ user_data.id.value}}</li>
-                <li><strong>Discord User ID:</strong> {{employee_data.discord_user_id}}</li>
-                <li><strong>Date joined:</strong> {{  user_data.date_joined.value }}</li>
-                <li><strong>Gender:</strong> {{employee_data.gender}}</li>
-                <li><strong>Date of Birth:</strong> {{employee_data.date_of_birth}} AD</li>
-                {%if request.user.id == employee_data.user%}
-                  <li><strong>Citizenship Number:</strong> {{employee_data.employee_citizenship_number}}</li>
-                  <li><strong>Bank Details:</strong><a href="{% url 'bank_detail' employee_data.user%}" class="link-dark text-decoration-underline">Bank details</a></li>
+                <li><strong>Email:</strong> {{ user_data.email }}</li>
+                <li><strong>Contact Number:</strong> {{user_data.phone_number}}</li>
+                <li><strong>Employee ID:</strong> {{ user_data.id}}</li>
+                <li><strong>Discord User ID:</strong> {{user_data.discord_user_id}}</li>
+                <li><strong>Date joined:</strong> {{  user_data.date_joined }}</li>
+                <li><strong>Gender:</strong> {{user_data.gender}}</li>
+                <li><strong>Date of Birth:</strong> {{user_data.date_of_birth}} AD</li>
+                {%if request.user.id == user_data.id%}
+                  <li><strong>Citizenship Number:</strong> {{user_data.employee_citizenship_number}}</li>
+                  <li><strong>Bank Details:</strong><a href="{% url 'bank_detail' user_data.id%}" class="link-dark text-decoration-underline">Bank details</a></li>
+                  
                 {%else%}
                   <li><strong>Citizenship Number:</strong>**-**-**-*****</li>
                 {%endif%}
               </ul>
+              <a href="{% url 'edit_personal_info' user_data.id%}" class="btn btn-secondary">Update</a>
               <a href="{%url 'admin_home'%}" class="btn btn-primary">Home</a>
         </div>
         

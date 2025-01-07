@@ -5,13 +5,12 @@ from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import viewsets,permissions
 from rest_framework.views import APIView,View
-from .models import LeaveRequest,TaskRecord,BreakRecord,CheckinRecord,Employee,BankDetails
-from .serializers import LeaveSerializer,TaskSerializer,BreakSerializer,CheckinSerializer,EmployeeSerializer,UserSerializer,BankDetailSerializer
+from .models import LeaveRequest,TaskRecord,BreakRecord,CheckinRecord,BankDetail,User
+from .serializers import LeaveSerializer,TaskSerializer,BreakSerializer,CheckinSerializer,UserSerializer,BankDetailSerializer
 from rest_framework.response import Response
 from .forms import LeaveApprovalForm,RegistrationForm,EmployeeBankDetailForm
 from django.contrib import messages
 from django.contrib.auth import login,logout,authenticate
-from django.contrib.auth.models import User 
 from rest_framework_simplejwt.tokens import AccessToken,RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -106,35 +105,45 @@ class RegisterUser(View):
             username=request.GET.get('discord_username')
             discord_id=int(request.GET.get('discord_user_id',0000000000))
             form=RegistrationForm()
+            username_field=form.fields['username']
+            discord_user_id_field=form.fields['discord_user_id']
+
+            username_field.widget=username_field.hidden_widget()
+            discord_user_id_field.widget=discord_user_id_field.hidden_widget()
+
+
             if username and discord_id:
-                 form.fields['username'].initial=username
-                 form.fields['discord_user_id'].initial=discord_id
+                 
+
+                 username_field.initial=username
+                 discord_user_id_field.initial=discord_id
+
+
+                 
+
+                 username_field.label="'Username' sent through discord"
+                 discord_user_id_field.label=" 'Discord ID' sent through discord"
+            else:
+                username_field.label="Please user discord '/register command' "
+                discord_user_id_field.label="Please user discord '/register command' "
+
+
+            
             return render(request,'register.html',{'form':form})
     def post(self,request):
         form=RegistrationForm(request.POST,request.FILES)
+        private_email=form['private_email'].value()
+        print(private_email)
         try:
             
-            if form.is_valid():
-                with transaction.atomic():
-                    userDB= form.save(commit=False) 
-                    userDB.save()  
-                    Employee.objects.create(
-                        user=userDB,
-                        discord_user_id=request.POST.get('discord_user_id'),
-                        job_title=request.POST.get('job_title'),
-                        phone_number=request.POST.get('phone_number'),
-                        date_of_birth=request.POST.get('date_of_birth'),
-                        gender=request.POST.get('gender'),
-                        employee_citizenship_number=request.POST.get('employee_citizenship_number'),
-                        employee_citizenship_photo=request.FILES.get('employee_citizenship_photo'),
-                        employee_resume_pdf=request.FILES.get('employee_resume_pdf'),
-                        employee_pp_photo=request.FILES.get('employee_pp_photo')
-                    )
-                    form.save()
-                    return redirect('admin_home')
+
+                if form.is_valid():            
+                        form.save()
+                        return redirect('admin_home')
             
-            else:
-                return render(request,'register.html',{'form':form})
+                else:
+                    print(form.error_messages)
+                    return render(request,'register.html',{'form':form})
                 
         
         except Exception as e:
@@ -146,9 +155,8 @@ class PersonalWorkRecord(View):
     permission_classes=[permissions.IsAuthenticated]
     authentication_classes=(JWTAuthentication,)
     def get(self,request,pk):
-            employee_object=get_object_or_404(Employee,user=pk)
-            leave_serializer=None
-            task_serializer=None
+            employee_object=get_object_or_404(User,id=pk)
+           
             try:
                 leave_object=LeaveRequest.objects.filter(user_id=employee_object.discord_user_id)
                 
@@ -167,14 +175,14 @@ class PersonalWorkRecord(View):
                 task_object=TaskRecord.objects.filter(checkin=checkin_object.id)
                 task_serializer=TaskSerializer(task_object,many=True)
     
-            if request.user ==employee_object.user:
+            if request.user ==employee_object:
                
                 return render(request,'employee_record.html',{'json_data': leave_serializer.data if leave_serializer else None,
                 'task_data': task_serializer.data if task_serializer else None,})
                
             else:
                 messages.success(request,'Unauthorized access')
-                return redirect('admin_home')
+                return redirect('logout')
 
 class PersonalProfileView(View):
     permission_classes=[permissions.IsAuthenticated]
@@ -182,12 +190,10 @@ class PersonalProfileView(View):
     def get(self,request,pk):
         try:
         
-            employee_object=get_object_or_404(Employee,user=pk)
-            employee_serializer=EmployeeSerializer(employee_object)
-
+            
             user_object=get_object_or_404(User,id=pk)
             user_serializer=UserSerializer(user_object)
-            return render(request,'personal_profile.html',{'employee_data':employee_serializer.data,'user_data':user_serializer})
+            return render(request,'personal_profile.html',{'user_data':user_serializer.data})
             
         except Exception as e:
             
@@ -203,8 +209,7 @@ class EmployeeBankDetail(View):
         try:
             form=EmployeeBankDetailForm()
             
-            
-            bank_detail_object=BankDetails.objects.filter(user=pk).first()
+            bank_detail_object=BankDetail.objects.filter(user_id=pk).first()
 
             if not bank_detail_object:
                 return render(request,'bank_detail_form.html',{'form':form}) 
@@ -221,7 +226,7 @@ class EmployeeBankDetail(View):
     def post(self,request,pk):
         try:
         
-            bank_detail_object=BankDetails.objects.filter(user=pk).first()
+            bank_detail_object=BankDetail.objects.filter(user_id=pk).first()
             if not bank_detail_object:
                 form=EmployeeBankDetailForm(request.POST,request.FILES)
             
@@ -278,7 +283,6 @@ class EditPersonalInfo(View):
             if request.user==user_object:
                
                 form=RegistrationForm(instance=user_object)
-                emmployee_object=get_object_or_404(Employee, user=user_object)
 
                 
                 #Hide from fields when editing
@@ -307,9 +311,9 @@ class EditPersonalInfo(View):
 
 
                 
-                form.initial['phone_number']=emmployee_object.phone_number
-                form.initial['gender']=emmployee_object.gender
-                form.initial['date_of_birth']=emmployee_object.date_of_birth
+                form.initial['phone_number']=user_object.phone_number
+                form.initial['gender']=user_object.gender
+                form.initial['date_of_birth']=user_object.date_of_birth
 
                 return render(request,'register.html',{'form':form})
             else:
@@ -324,15 +328,14 @@ class EditPersonalInfo(View):
             form=RegistrationForm(request.POST,request.FILES,instance=user_object)
 
             
-            emmployee_object=Employee.objects.get(user=user_object)
            
 
-            DUID=emmployee_object.discord_user_id
-            JT=emmployee_object.job_title
-            ECN=emmployee_object.employee_citizenship_number
-            ER=emmployee_object.employee_resume_pdf
-            ECP=emmployee_object.employee_citizenship_photo
-            EPP=emmployee_object.employee_pp_photo
+            DUID=user_object.discord_user_id
+            JT=user_object.job_title
+            ECN=user_object.employee_citizenship_number
+            ER=user_object.employee_resume_pdf
+            ECP=user_object.employee_citizenship_photo
+            EPP=user_object.employee_pp_photo
             
            
             username_field=form.fields['username']
@@ -357,16 +360,16 @@ class EditPersonalInfo(View):
                     userDb.first_name = request.POST.get('first_name', userDb.first_name)
                     userDb.last_name = request.POST.get('last_name', userDb.last_name)
             
-                    emmployee_object.discord_user_id=DUID
-                    emmployee_object.job_title=JT
-                    emmployee_object.phone_number=request.POST.get('phone_number')
-                    emmployee_object.date_of_birth=request.POST.get('date_of_birth')
-                    emmployee_object.gender=request.POST.get('gender')
-                    emmployee_object.employee_citizenship_number=ECN
-                    emmployee_object.employee_citizenship_photo=ECP
-                    emmployee_object.employee_resume_pdf=ER
-                    emmployee_object.employee_pp_photo=EPP
-                    emmployee_object.save()    
+                    user_object.discord_user_id=DUID
+                    user_object.job_title=JT
+                    user_object.phone_number=request.POST.get('phone_number')
+                    user_object.date_of_birth=request.POST.get('date_of_birth')
+                    user_object.gender=request.POST.get('gender')
+                    user_object.employee_citizenship_number=ECN
+                    user_object.employee_citizenship_photo=ECP
+                    user_object.employee_resume_pdf=ER
+                    user_object.employee_pp_photo=EPP
+                    user_object.save()    
                     form.save()
 
                 messages.success(request,'Profile updated')
@@ -379,16 +382,5 @@ class EditPersonalInfo(View):
             messages.success(request,e)
             return redirect('admin_home')            
 
-class MyTokenObtainPairView(TokenObtainPairView):
-    @classmethod
-    def post(self,request,*args,**kwargs):
-        serializer=self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user=serializer.user
-        Refresh=RefreshToken.for_user(user)
-        Access=AccessToken.for_user(user)
-        data=serializer.data
-        data['tokens']={"refresh":str(Refresh),"access":str(Access)}
-        return Response(data)
     
 

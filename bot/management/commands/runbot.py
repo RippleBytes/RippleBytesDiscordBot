@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
 from django.core.management.base import BaseCommand
-from bot.models import CheckinRecord, TaskRecord, BreakRecord,LeaveRequest,Employee,LateArrival
+from bot.models import CheckinRecord, TaskRecord, BreakRecord,LeaveRequest,LateArrival,User
 from django.utils.timezone import now
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from asgiref.sync import sync_to_async
 import traceback
 from datetime import datetime
@@ -82,6 +83,8 @@ def time_converter(utc_time: datetime):
     formatted_time = kathmandu_time.strftime(format)  
     return formatted_time
 
+
+
 class LeaveRequestStatus(Enum):
     requested='Requested',
     rejected='Rejected',
@@ -112,15 +115,16 @@ class CheckinModal(discord.ui.Modal, title="Check-in Tasks"):
         # async with transaction.atomic():
         try:
             # Create CheckinRecord
+            user_object= await sync_to_async(get_object_or_404)(User,discord_user_id=str(self.user.id))
             checkin_record = await sync_to_async(CheckinRecord.objects.create)(
-                user_id=str(self.user.id),
+                user=user_object,
                 username=self.user.name,
                 checkin_time=now()
             )
 
             # Create TaskRecords
             task_records = [
-                TaskRecord(checkin=checkin_record, task=task.strip()) for task in tasks if task.strip()
+                TaskRecord(user=user_object, task=task.strip(),completed=False) for task in tasks if task.strip()
             ]
             await sync_to_async(TaskRecord.objects.bulk_create)(task_records)
 
@@ -219,14 +223,16 @@ class CheckoutModal(discord.ui.Modal, title="Checkout"):
 
         try:
             # Mark existing tasks as completed
+            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
             for task in completed_tasks:
                 await TaskRecord.objects.filter(
-                    checkin=self.checkin_record, task__iexact=task.strip()
-                ).aupdate(completed=True)
+                    user=user_object,task__iexact=task.strip()
+                ).filter(completed=False).aupdate(completed=True)
 
             # Add additional tasks as completed
+            
             new_task_records = [
-                TaskRecord(checkin=self.checkin_record, task=task.strip(), completed=True)
+                TaskRecord(user=user_object, task=task.strip(), completed=True)
                 for task in additional_tasks if task.strip()
             ]
             if new_task_records:
@@ -247,7 +253,7 @@ class CheckoutModal(discord.ui.Modal, title="Checkout"):
             await interaction.channel.send(embed=embed)
 
             await interaction.response.send_message(
-                "✅ Checkout successful! Have a great day!",
+                "✅ Checkout successful! Byee!",
                 ephemeral=True
             )
         except Exception as e:
@@ -312,11 +318,13 @@ class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
     
         start_date=datetime.strptime(self.start_date.value,date_format).date()
         end_date=datetime.strptime(self.end_date.value,date_format).date()
-        # leave_type=self.add_item(DropDown)
+        
+
         if time_validation(start_date,end_date):
                 try:
+                        user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
                         leave_request=await sync_to_async(LeaveRequest.objects.create)(
-                            user_id=str(self.user.id),
+                            user=user_object,
                             username=self.user.name,
                             reason=reason_input,
                             leave_type=leave_type,
@@ -397,10 +405,10 @@ class LateArrivalModal(discord.ui.Modal,title='CheckinDelay'):
         
 
         try:
-            
+            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
             if format_time_duration and valid_time_duration is not None:
                 late_arrival=await sync_to_async(LateArrival.objects.create)(
-                    user_id=str(self.user.id),
+                    user=user_object,
                     reason=reason_late_duration,
                     time_duration=str(format_time_duration) ,
                     
@@ -462,17 +470,30 @@ class Command(BaseCommand):
         
         @bot.tree.command(name="checkin", description="Start your check-in by entering your tasks.")
         async def checkin(interaction: discord.Interaction):
-            existing_record = await CheckinRecord.objects.filter(
-                user_id=str(interaction.user.id), checkout_time__isnull=True
-            ).afirst()
-            if existing_record:
+            try:
+                user_object= await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id) )
+                
+                existing_record = await CheckinRecord.objects.filter(
+                user=user_object, checkout_time__isnull=True
+                ).afirst()
+                
+            except:
                 await interaction.response.send_message(
-                    "❌ You already have an active check-in! Please checkout first.",
+                    "Please register using discord first",
                     ephemeral=True
                 )
+
+            
+            if existing_record:
+                    await interaction.response.send_message(
+                        "❌ You already have an active check-in! Please checkout first.",
+                        ephemeral=True
+                    )
             else:
-                modal = CheckinModal(interaction.user)
-                await interaction.response.send_modal(modal)
+                    modal = CheckinModal(interaction.user)
+            
+            
+            await interaction.response.send_modal(modal)
         
 
         #create slash commands
@@ -480,13 +501,12 @@ class Command(BaseCommand):
         @bot.tree.command(name='leave_request',description="Send a leave request to admin")
         async def take_leave(interaction:discord.Interaction):
             
+
+            user_object= await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id) )
+
             channel=bot.get_channel(ADMIN_CHANNEL_ID)
         
-            leave_request= await LeaveRequest.objects.filter(
                 
-                user_id=str(interaction.user.id)
-            ).afirst()
-    
             
                 
             modal=LeaveRequestModal(interaction.user)
@@ -498,8 +518,9 @@ class Command(BaseCommand):
 
         @bot.tree.command(name="checkout", description="Checkout by marking completed tasks and adding any additional tasks.")
         async def checkout(interaction: discord.Interaction):
+            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
             checkin_record = await CheckinRecord.objects.filter(
-                user_id=str(interaction.user.id), checkout_time__isnull=True
+                user=user_object, checkout_time__isnull=True
             ).afirst()
             if not checkin_record:
                 await interaction.response.send_message(
@@ -510,7 +531,7 @@ class Command(BaseCommand):
                 modal = CheckoutModal(interaction.user, checkin_record)
                 # Optionally, pre-fill the placeholder with existing task names
                 existing_tasks = []
-                async for task in TaskRecord.objects.filter(checkin=checkin_record):
+                async for task in TaskRecord.objects.filter(user=user_object):
                     existing_tasks.append(task.task)
                 modal.tasks_completed.default = f"\n".join(existing_tasks)
                 await interaction.response.send_modal(modal)
@@ -592,8 +613,9 @@ class Command(BaseCommand):
 
         @bot.tree.command(name='late_arrival',description='Send a message for late checkin!')
         async def late_arrival_cmd(interaction:discord.Interaction):
+            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
             checkin_record = await CheckinRecord.objects.filter(
-                user_id=str(interaction.user.id), checkout_time__isnull=True
+                user=user_object, checkout_time__isnull=True
             ).afirst()
 
             if checkin_record:
@@ -601,10 +623,11 @@ class Command(BaseCommand):
                         "❌ You have already checked in!!",
                         ephemeral=True
                     )
+            else:
 
 
-            modal=LateArrivalModal(interaction.user)
-            await interaction.response.send_modal(modal)
+                modal=LateArrivalModal(interaction.user)
+                await interaction.response.send_modal(modal)
 
        
        
