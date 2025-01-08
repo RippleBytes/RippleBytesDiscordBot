@@ -35,7 +35,7 @@
         {%if Leavedata%}
         {% for personal_leave in Leavedata%}
         <tr>
-              <td><a href='{% url "personal_leave" user.id%}' class="link-dark text-decoration-underline">{{personal_leave.id}}</a></td>
+              <td><a href='{% url "personal_leave" personal_leave.id%}' class="link-dark text-decoration-underline">{{personal_leave.id}}</a></td>
               <td>{{personal_leave.user}}</td>
               <td>{{personal_leave.username}}</td>
               <td>{{personal_leave.start_date}}</td>

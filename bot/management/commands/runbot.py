@@ -213,10 +213,12 @@ class CheckoutModal(discord.ui.Modal, title="Checkout"):
         super().__init__()
         self.user = user
         self.checkin_record = checkin_record
+       
 
     async def on_submit(self, interaction: discord.Interaction):
         tasks_completed_input = self.tasks_completed.value.strip()
         additional_tasks_input = self.additional_tasks.value.strip()
+    
 
         completed_tasks = tasks_completed_input.splitlines() if tasks_completed_input else []
         additional_tasks = additional_tasks_input.splitlines() if additional_tasks_input else []
@@ -540,7 +542,7 @@ class Command(BaseCommand):
                 modal = CheckoutModal(interaction.user, checkin_record)
                 # Optionally, pre-fill the placeholder with existing task names
                 existing_tasks = []
-                async for task in TaskRecord.objects.filter(user=user_object):
+                async for task in TaskRecord.objects.filter(checkin=checkin_record):
                     existing_tasks.append(task.task)
                 modal.tasks_completed.default = f"\n".join(existing_tasks)
                 await interaction.response.send_modal(modal)
