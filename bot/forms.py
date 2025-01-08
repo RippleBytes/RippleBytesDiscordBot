@@ -50,7 +50,7 @@ banks_of_nepal =  [
 #         fields='__all__'
 
 class LeaveApprovalForm(forms.ModelForm):   
-    user_id=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
+    
     username=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
     leave_type=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
     reason=forms.CharField(widget=forms.widgets.TextInput(attrs={'class':'form-control'}))
@@ -64,7 +64,8 @@ class LeaveApprovalForm(forms.ModelForm):
                 
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
-        self.fields['user_id'].disabled=True
+        
+        self.fields['user'].disabled=True
         self.fields['username'].disabled=True
         self.fields['leave_type'].disabled=True
         self.fields['reason'].disabled=True
@@ -128,7 +129,7 @@ class RegistrationForm(UserCreationForm):
             return self.cleaned_data
    
              
-class UserChangeForm(UserChangeForm):
+class CustomUserChangeForm(UserChangeForm):
     username=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'abc@abc.com','name':'email'}))
     email=forms.EmailField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'abc@abc.com','name':'email'}))
     first_name=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'John','name':'first_name'}))

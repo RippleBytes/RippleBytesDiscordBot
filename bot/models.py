@@ -69,12 +69,12 @@ class CheckinRecord(models.Model):
     username = models.CharField(max_length=100)
     checkin_time = models.DateTimeField(default=now)
     checkout_time = models.DateTimeField(null=True, blank=True)
-
     def __str__(self):
         return f"{self.username}({self.user})"
 
 class TaskRecord(models.Model):
-    user = models.ForeignKey(User, related_name='tasks', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    checkin=models.ForeignKey(CheckinRecord, related_name='tasks',on_delete=models.CASCADE)
     task = models.TextField()
     completed = models.BooleanField(default=False)
 
@@ -104,7 +104,7 @@ class LeaveRequest(models.Model):
     
 
     def __str__(self):
-        return f'{self.username}{self.reason}',
+        return f'{self.username}{self.reason}'
     
 
 

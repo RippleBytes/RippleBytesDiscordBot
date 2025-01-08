@@ -13,12 +13,13 @@ from unfold.views import UnfoldModelAdminViewMixin
 from django.views.generic import TemplateView
 from unfold.decorators import action
 from django.utils.translation import gettext_lazy as _
+from .forms import RegistrationForm,CustomUserChangeForm
 
-class MyCustomAdminView(UnfoldModelAdminViewMixin, TemplateView):
-    title = "My Custom Admin Page"
-    permission_required = "(auth.view_user,)"
-    template_name = "templates/admin/custom_page.html"
+
+
+
 admin.site.unregister(Group)
+
 
 
 class TaskRecordInline(TabularInline):
@@ -29,9 +30,10 @@ class TaskRecordInline(TabularInline):
 
 @admin.register(User)
 class CustomAdmin(ModelAdmin):
-    fields=("id",'discord_user_id')
+    fields=('discord_user_id','username','job_title','date_of_birth','gender','last_login','phone_number','email','private_email','employee_citizenship_number','employee_citizenship_photo','employee_pp_photo','employee_resume_pdf')
 
     inlines=[TaskRecordInline]
+    readonly_fields=('discord_user_id','username','last_login')
     
 
     
@@ -92,9 +94,11 @@ class BreakRecordAdmin(ModelAdmin,ImportExportModelAdmin):
 
 @admin.register(LeaveRequest)
 class LeaveRequestAdmin(ModelAdmin,ImportExportModelAdmin):
-     list_display=('user','username','leave_type','reason','status','start_date','end_date')
-     readonly_fields=('user','username','leave_type','reason','start_date','end_date')
-     exclude=('id',)
+     
+
+     readonly_fields=('user','username','start_date','end_date','reason')
+     list_display=('user','username','status','leave_type','reason','start_date','end_date')
+    
      
      import_form_class=ImportForm
      export_form_class=ExportForm

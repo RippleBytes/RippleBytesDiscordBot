@@ -33,22 +33,22 @@
         </thead>
         <tbody>
         {%if Leavedata%}
-        {% for user in Leavedata%}
+        {% for personal_leave in Leavedata%}
         <tr>
-              <td><a href='{% url "personal_leave" user.id%}' class="link-dark text-decoration-underline">{{user.id}}</a></td>
-              <td>{{user.user_id}}</td>
-              <td>{{user.username}}</td>
-              <td>{{user.start_date}}</td>
-              <td>{{user.end_date}}</td>
-              <td>{{user.leave_type}}</td>
-              {%if user.status == 'Approved'%}
-              <td class="text-success">{{user.status}}</td>
-              {%elif user.status == 'Rejected'%}
-              <td class="text-danger">{{user.status}}</td>
+              <td><a href='{% url "personal_leave" user.id%}' class="link-dark text-decoration-underline">{{personal_leave.id}}</a></td>
+              <td>{{personal_leave.user}}</td>
+              <td>{{personal_leave.username}}</td>
+              <td>{{personal_leave.start_date}}</td>
+              <td>{{personal_leave.end_date}}</td>
+              <td>{{personal_leave.leave_type}}</td>
+              {%if personal_leave.status == 'Approved'%}
+              <td class="text-success">{{personal_leave.status}}</td>
+              {%elif personal_leave.status == 'Rejected'%}
+              <td class="text-danger">{{personal_leave.status}}</td>
               {%else%}
-              <td class="text-primary">{{user.status}}</td>
+              <td class="text-primary">{{personal_leave.status}}</td>
               {%endif%}
-              <td>{{user.reason}}</td>
+              <td>{{personal_leave.reason}}</td>
             </a>
             {% endfor%}
           </tr>

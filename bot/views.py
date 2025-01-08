@@ -75,6 +75,8 @@ class LeaveApproval(View):
     
 
     def post(self,request,pk):
+        
+
         leave_object=get_object_or_404(LeaveRequest,id=pk)
         form=LeaveApprovalForm(request.POST,instance=leave_object)
         if form.is_valid():
@@ -84,7 +86,9 @@ class LeaveApproval(View):
                 except Exception as e:
                     return HttpResponse (e)
         else:
-                return HttpResponse("Not Valid")
+                messages.success(request,form.errors)
+                return redirect('employee_leave')
+
         
 class EmployeeLeaveStatusFilter(View):
     permissions=[permissions.IsAdminUser]
@@ -154,11 +158,16 @@ class RegisterUser(View):
 class PersonalWorkRecord(View):
     permission_classes=[permissions.IsAuthenticated]
     authentication_classes=(JWTAuthentication,)
+
+   
+
     def get(self,request,pk):
+            leave_serializer=None
+            task_serializer=None
             employee_object=get_object_or_404(User,id=pk)
            
             try:
-                leave_object=LeaveRequest.objects.filter(user_id=employee_object.discord_user_id)
+                leave_object=LeaveRequest.objects.filter(user=employee_object.id)
                 
             except ObjectDoesNotExist:
                 leave_object=None
@@ -167,12 +176,9 @@ class PersonalWorkRecord(View):
                 leave_serializer=LeaveSerializer(leave_object,many=True)
     
 
-            try:
-                checkin_object=CheckinRecord.objects.filter(user_id=employee_object.discord_user_id ).get()
-            except ObjectDoesNotExist:
-                checkin_object=None
-            if checkin_object:
-                task_object=TaskRecord.objects.filter(checkin=checkin_object.id)
+            
+        
+                task_object=TaskRecord.objects.filter(user=employee_object.id)
                 task_serializer=TaskSerializer(task_object,many=True)
     
             if request.user ==employee_object:

@@ -124,7 +124,7 @@ class CheckinModal(discord.ui.Modal, title="Check-in Tasks"):
 
             # Create TaskRecords
             task_records = [
-                TaskRecord(user=user_object, task=task.strip(),completed=False) for task in tasks if task.strip()
+                TaskRecord(user=user_object,checkin=checkin_record, task=task.strip(),completed=False) for task in tasks if task.strip()
             ]
             await sync_to_async(TaskRecord.objects.bulk_create)(task_records)
 
@@ -226,13 +226,13 @@ class CheckoutModal(discord.ui.Modal, title="Checkout"):
             user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
             for task in completed_tasks:
                 await TaskRecord.objects.filter(
-                    user=user_object,task__iexact=task.strip()
-                ).filter(completed=False).aupdate(completed=True)
+                    checkin=self.checkin_record,task__iexact=task.strip()
+                ).aupdate(completed=True)
 
             # Add additional tasks as completed
             
             new_task_records = [
-                TaskRecord(user=user_object, task=task.strip(), completed=True)
+                TaskRecord(user=user_object,checkin=self.checkin_record, task=task.strip(), completed=True)
                 for task in additional_tasks if task.strip()
             ]
             if new_task_records:
@@ -244,8 +244,8 @@ class CheckoutModal(discord.ui.Modal, title="Checkout"):
 
             embed = discord.Embed(
                 title="Checkout",
-                description=self.tasks_completed.value,
-                color=discord.Color.blue()
+                description=self.tasks_completed,
+                color=discord.Color.blue(),
             )
             embed.set_author(name=self.user.name)
             embed.add_field(name="Additional Task Completed", value=self.additional_tasks.value, inline=False)
@@ -491,9 +491,7 @@ class Command(BaseCommand):
                     )
             else:
                     modal = CheckinModal(interaction.user)
-            
-            
-            await interaction.response.send_modal(modal)
+                    await interaction.response.send_modal(modal)
         
 
         #create slash commands
@@ -501,8 +499,13 @@ class Command(BaseCommand):
         @bot.tree.command(name='leave_request',description="Send a leave request to admin")
         async def take_leave(interaction:discord.Interaction):
             
-
-            user_object= await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id) )
+            try:
+                user_object= await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id) )
+            except:
+                await interaction.response.send_message(
+                    "Please register using discord first",
+                    ephemeral=True
+                )
 
             channel=bot.get_channel(ADMIN_CHANNEL_ID)
         
@@ -518,10 +521,16 @@ class Command(BaseCommand):
 
         @bot.tree.command(name="checkout", description="Checkout by marking completed tasks and adding any additional tasks.")
         async def checkout(interaction: discord.Interaction):
-            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
-            checkin_record = await CheckinRecord.objects.filter(
+            try:
+                user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
+                checkin_record = await CheckinRecord.objects.filter(
                 user=user_object, checkout_time__isnull=True
-            ).afirst()
+                ).afirst()
+            except:
+                await interaction.response.send_message(
+                    "Please register using discord first",
+                    ephemeral=True
+                )
             if not checkin_record:
                 await interaction.response.send_message(
                     "❌ No active check-in found. Please check in first.",
@@ -538,8 +547,10 @@ class Command(BaseCommand):
 
         @bot.tree.command(name="take_break", description="Start a break by providing a reason.")
         async def take_break(interaction: discord.Interaction):
+
+            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
             checkin_record = await CheckinRecord.objects.filter(
-                user_id=str(interaction.user.id), checkout_time__isnull=True
+                user=user_object, checkout_time__isnull=True
             ).afirst()
             if not checkin_record:
                 await interaction.response.send_message(
@@ -562,8 +573,9 @@ class Command(BaseCommand):
 
         @bot.tree.command(name="end_break", description="End your current break.")
         async def end_break_cmd(interaction: discord.Interaction):
+            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
             checkin_record = await CheckinRecord.objects.filter(
-                user_id=str(interaction.user.id), checkout_time__isnull=True
+                user=user_object, checkout_time__isnull=True
             ).afirst()
             if not checkin_record:
                 await interaction.response.send_message(
@@ -613,7 +625,14 @@ class Command(BaseCommand):
 
         @bot.tree.command(name='late_arrival',description='Send a message for late checkin!')
         async def late_arrival_cmd(interaction:discord.Interaction):
-            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
+            try:
+                user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
+            except:
+                await interaction.response.send_message(
+                    "Please register using discord first",
+                    ephemeral=True
+                )
+
             checkin_record = await CheckinRecord.objects.filter(
                 user=user_object, checkout_time__isnull=True
             ).afirst()
