@@ -65,28 +65,45 @@ UNFOLD = {
         "show_all_applications": False,  # Dropdown with all applications and models
         "navigation": [
             {
-                
-                "separator": True,  # Top border
-                "collapsible": False,  # Collapsible group of links
-                "items": [
+                'items':
+                [
                     {
                         "title": _("Dashboard"), 
                         "icon": "menu",  
                         "link": reverse_lazy("admin:index"),
                         "permission": lambda request: request.user.is_superuser,
                     },
+                ]
+
+            },
+            {
+                "title":_('Users'),
+                "separator":True,
+                "collapsible":True,
+                "items":
+                [
                     {
                         "title": _("Users"), 
                         "icon": "person",
                         "link": reverse_lazy("admin:bot_user_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
+                    
                     {
                         "title": _("Groups"), 
                         "icon": "people",
                         "link": reverse_lazy("admin:auth_group_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
+                ]
+            },
+            {
+                'title':_('Office bot records'),
+                "separator": True,  # Top border
+                "collapsible": True,  # Collapsible group of links
+                "items": [
+                    
+                    
                     {
                         "title": _("Bank Details"), 
                         "icon": "savings",
@@ -105,7 +122,7 @@ UNFOLD = {
                     
                     {
                         "title": _("Leave request"), 
-                        "icon": "exit_to_app",
+                        "icon": "waving_hand",
                         "link": reverse_lazy("admin:bot_leaverequest_changelist"),
                     },
                     {

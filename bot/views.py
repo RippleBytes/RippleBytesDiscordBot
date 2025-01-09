@@ -21,6 +21,8 @@ class LoginUser(View):
     
     permission_classes=[permissions.AllowAny]
     def get(self,request):
+        if request.user.is_authenticated:
+            return redirect('admin_home')
         return render(request,'admin_home.html')
     def post(self,request):
         username=request.POST.get('username')
@@ -139,12 +141,26 @@ class RegisterUser(View):
         private_email=form['private_email'].value()
         print(private_email)
         try:
-            
-
-                if form.is_valid():            
-                        form.save()
-                        return redirect('admin_home')
-            
+     
+            if form.is_valid():
+                with transaction.atomic():
+                    userDB= form.save(commit=False) 
+                    
+                    userDB.save()  
+                    Employee.objects.create(
+                        user=userDB,
+                        discord_user_id=request.POST.get('discord_user_id'),
+                        job_title=request.POST.get('job_title'),
+                        phone_number=request.POST.get('phone_number'),
+                        date_of_birth=request.POST.get('date_of_birth'),
+                        gender=request.POST.get('gender'),
+                        employee_citizenship_number=request.POST.get('employee_citizenship_number'),
+                        employee_citizenship_photo=request.FILES.get('employee_citizenship_photo'),
+                        employee_resume_pdf=request.FILES.get('employee_resume_pdf'),
+                        employee_pp_photo=request.FILES.get('employee_pp_photo')
+                    )
+                    form.save()
+                    return redirect('admin_home')
                 else:
                     print(form.error_messages)
                     return render(request,'register.html',{'form':form})
@@ -354,6 +370,7 @@ class EditPersonalInfo(View):
             form.fields['employee_citizenship_photo'].required=False
             form.fields['employee_resume_pdf'].required=False
             form.fields['employee_pp_photo'].required=False
+
 
             
             if form.is_valid():

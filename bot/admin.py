@@ -6,19 +6,22 @@ from import_export.admin import ImportExportModelAdmin
 from unfold.admin import ModelAdmin
 from unfold.forms import AdminPasswordChangeForm,UserCreationForm,UserChangeForm
 from unfold.contrib.import_export.forms import ImportForm,ExportForm
-from unfold.admin import TabularInline
-from unfold.admin import ModelAdmin
+from unfold.admin import TabularInline,ModelAdmin
 from unfold.contrib.filters.admin import RangeDateFilter, RangeDateTimeFilter
 from unfold.views import UnfoldModelAdminViewMixin
 from django.views.generic import TemplateView
 from unfold.decorators import action
 from django.utils.translation import gettext_lazy as _
 from .forms import RegistrationForm,CustomUserChangeForm
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken,OutstandingToken
 
 
 
 
 admin.site.unregister(Group)
+admin.site.unregister(User)
+admin.site.unregister(BlacklistedToken)
+admin.site.unregister(OutstandingToken)
 
 
 
@@ -38,7 +41,14 @@ class CustomAdmin(ModelAdmin):
 
     
 
-    
+@admin.register(BlacklistedToken)
+class BlacklistedTokenAdmin(ModelAdmin):
+    pass
+
+@admin.register(OutstandingToken)
+class OutstandingTokenAdmin(ModelAdmin):
+    pass
+
 @admin.register(Group)
 class DjangoGroupAdmin(GroupAdmin,ModelAdmin):
     warn_unsaved_form=True
@@ -83,22 +93,24 @@ admin.site.register(TaskRecord,TaskRecordAdmin)
 
 @admin.register(BreakRecord)
 class BreakRecordAdmin(ModelAdmin,ImportExportModelAdmin):
-    list_display = ('checkin', 'start_time', 'end_time', 'reason')
+    list_display = ('checkin', 'start_time', 'end_time', 'reason','break_duration')
     import_form_class=ImportForm
     export_form_class=ExportForm
     list_filter=[
         ('start_time',RangeDateTimeFilter)
-
-
     ]
+    def break_duration(self,obj):
+        return (obj.end_time- obj.start_time)
+    
+    
+    break_duration.short_description='Break Duration'
+
 
 @admin.register(LeaveRequest)
 class LeaveRequestAdmin(ModelAdmin,ImportExportModelAdmin):
-     
-
-     readonly_fields=('user','username','start_date','end_date','reason')
-     list_display=('user','username','status','leave_type','reason','start_date','end_date')
-    
+     list_display=('user_id','username','leave_type','reason','status','start_date','end_date','leave_days')
+     readonly_fields=('user_id','username','leave_type','reason','start_date','end_date')
+     exclude=('id',)
      
      import_form_class=ImportForm
      export_form_class=ExportForm
@@ -109,6 +121,11 @@ class LeaveRequestAdmin(ModelAdmin,ImportExportModelAdmin):
          ('start_date',RangeDateFilter)
      ]
      list_filter_submit=True
+     def leave_days(self,obj):
+        
+         return (obj.end_date -obj.start_date).days
+     
+     leave_days.short_description='No of leave days'
      
      
         

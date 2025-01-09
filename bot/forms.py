@@ -92,7 +92,7 @@ class RegistrationForm(UserCreationForm):
     
     employee_citizenship_number=forms.CharField(max_length=14,widget=forms.TextInput(attrs={'class':'form-control','placeholder':'**-**-**-*****','name':'employee_citizenship_number'}))
     employee_citizenship_photo=forms.ImageField(required=False,widget=forms.FileInput(attrs={'class':'form-control','placeholder':'.jpg, .jpeg, .png, .gif'}))
-    employee_resume_pdf=forms.FileField(required=False,widget=forms.FileInput(attrs={'class':'form-control','placeholder':'.pdf'}))
+    employee_resume_pdf=forms.FileField(required=False,widget=forms.ClearableFileInput(attrs={'class':'form-control','placeholder':'.pdf','accept':'.pdf'}))
     employee_pp_photo=forms.ImageField(required=False,widget=forms.FileInput(attrs={'class':'form-control','placeholder':'.jpg, .jpeg, .png, .gif'}))
     
     class Meta:
@@ -127,7 +127,7 @@ class RegistrationForm(UserCreationForm):
             if password and confirm_password and password != confirm_password:
                     raise ValidationError("passwords dont match")
             return self.cleaned_data
-   
+
              
 class CustomUserChangeForm(UserChangeForm):
     username=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'abc@abc.com','name':'email'}))
@@ -183,7 +183,18 @@ class CustomUserChangeForm(UserChangeForm):
                     raise ValidationError("passwords dont match")
             return self.cleaned_data
      
+    
+    def clean_file(self):
+        employee_citizenship_photo=self.cleaned_data.get("employee_citizenship_photo")
+        employee_resume_pdf=self.cleaned_data.get("employee_resume_pdf")
+        employee_pp_photo=self.cleaned_data.get("employee_pp_photo")
+        
+        if not employee_citizenship_photo and employee_resume_pdf and employee_pp_photo:
+             raise forms.ValidationError("Please provide all files")
+        return employee_citizenship_photo,employee_pp_photo,employee_resume_pdf
 
+
+    
 
 class EmployeeBankDetailForm(forms.ModelForm):
     
