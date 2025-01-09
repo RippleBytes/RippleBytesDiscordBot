@@ -25,6 +25,6 @@ urlpatterns=[
     path('employee_bank_details/<int:pk>',EmployeeBankDetail.as_view(),name='bank_detail'),
     path('task_record/',AllTaskRecord.as_view(),name='task_record'),
     path('company_checkin_record/',AllCheckinRecord.as_view(),name='all_checkin_record'),
-    path('register/<int:pk>',EditPersonalInfo.as_view(),name='edit_personal_info'),
+    # path('register/<int:pk>',EditPersonalInfo.as_view(),name='edit_personal_info'),
 
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
