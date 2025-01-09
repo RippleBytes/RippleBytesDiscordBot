@@ -22,6 +22,8 @@ class LoginUser(View):
     
     permission_classes=[permissions.AllowAny]
     def get(self,request):
+        if request.user.is_authenticated:
+            return redirect('admin_home')
         return render(request,'admin_home.html')
     def post(self,request):
         username=request.POST.get('username')
@@ -117,6 +119,7 @@ class RegisterUser(View):
             if form.is_valid():
                 with transaction.atomic():
                     userDB= form.save(commit=False) 
+                    
                     userDB.save()  
                     Employee.objects.create(
                         user=userDB,
@@ -345,6 +348,7 @@ class EditPersonalInfo(View):
             form.fields['employee_citizenship_photo'].required=False
             form.fields['employee_resume_pdf'].required=False
             form.fields['employee_pp_photo'].required=False
+
 
             
             if form.is_valid():

@@ -126,7 +126,7 @@ UNFOLD = {
                     },
                     {
                         "title": _("Leave request"), 
-                        "icon": "exit_to_app",
+                        "icon": "waving_hand",
                         "link": reverse_lazy("admin:bot_leaverequest_changelist"),
                     },
                     {
