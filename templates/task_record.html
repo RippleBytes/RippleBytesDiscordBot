@@ -16,7 +16,8 @@
                 <tbody>
                     {% for task in task_data%}
                     <tr>
-                        <td><a href="#" class="link-dark text-decoration-underline">{{task.checkin}}</a></td>
+                        
+                        <td><a href="{% url 'personal_profile' task.user%}" class="link-dark text-decoration-underline">{{task.checkin}}</a></td>
                         <td>{{task.task}}</td>
                         {%if task.completed%}
                             <td class="text-success">Completed</td>

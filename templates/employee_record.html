@@ -12,7 +12,6 @@
             
               <tr>
                 <th>Leave id</th>
-                <th>Discord user id</th>
                 <th>Username</th>
                 <th>Leave start</th>
                 <th>Leave end</th>
@@ -25,7 +24,6 @@
                 {% for leave in json_data%}
                 <tr>
                     <td>{{leave.id}}</td>
-                    <td>{{leave.user_id}}</td>
                     <td>{{leave.username}}</td>
                     <td>{{leave.start_date}}</td>
                     <td>{{leave.end_date}}</td>
