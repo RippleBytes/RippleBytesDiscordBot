@@ -1,5 +1,5 @@
 # Use official Python base image
-FROM python:3.11-slim
+FROM python:3.12.6-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -25,4 +25,4 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Start Gunicorn server
-CMD ["gunicorn", "project_name.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+#CMD ["gunicorn", "project_name.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
