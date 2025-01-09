@@ -15,11 +15,7 @@ from django.utils.translation import gettext_lazy as _
 from .forms import RegistrationForm,CustomUserChangeForm
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken,OutstandingToken
 
-
-
-
 admin.site.unregister(Group)
-admin.site.unregister(User)
 admin.site.unregister(BlacklistedToken)
 admin.site.unregister(OutstandingToken)
 
@@ -33,13 +29,32 @@ class TaskRecordInline(TabularInline):
 
 @admin.register(User)
 class CustomAdmin(ModelAdmin):
-    fields=('discord_user_id','username','job_title','date_of_birth','gender','last_login','phone_number','email','private_email','employee_citizenship_number','employee_citizenship_photo','employee_pp_photo','employee_resume_pdf')
+    fieldsets = [
+        ('General', {
+            'fields': [
+                'discord_user_id', 'username', 'job_title',
+                'date_of_birth', 'gender', 'last_login', 'phone_number',
+                'email', 'private_email', 'employee_citizenship_number',
+                'employee_citizenship_photo', 'employee_pp_photo', 'employee_resume_pdf'
+            ],
+        }),
+        ("Permissions", {"fields": ("is_staff", "is_active", "groups", "user_permissions")}),
+    ]
+    add_fieldsets = (
+        (None, {
+            "classes": ("wide",),
+            "fields": (
+                "username", "email", "phone_number", "profile_picture", "bio", "password1", "password2", "is_staff",
+                "is_active", "groups", "user_permissions"
+            )}
+         ),
+    )
 
     inlines=[TaskRecordInline]
     readonly_fields=('discord_user_id','username','last_login')
-    
 
-    
+
+
 
 @admin.register(BlacklistedToken)
 class BlacklistedTokenAdmin(ModelAdmin):
