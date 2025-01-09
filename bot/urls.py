@@ -1,10 +1,10 @@
 from django.urls import path,re_path
 from django.conf.urls.static import static
 from django.conf import settings
-from rest_framework_simplejwt.views import TokenRefreshView,TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from .views import PersonalWorkRecord,EmployeeRecord,LoginUser,LogoutUser \
-,EmployeeLeaveStatusFilter,RegisterUser,LeaveApproval,EmployeeBankDetail,PersonalProfileView,MyTokenObtainPairView \
-,LeaveRecord,AllTaskRecord,AllCheckinRecord,EditPersonalInfo
+,EmployeeLeaveStatusFilter,LeaveApproval,EmployeeBankDetail,PersonalProfileView\
+,LeaveRecord,AllTaskRecord,AllCheckinRecord,EditPersonalInfo,RegisterUser
 # from rest_framework.routers import DefaultRouter
 
 # routers=DefaultRouter()
@@ -19,13 +19,12 @@ urlpatterns=[
     path("filter/<str:status>",EmployeeLeaveStatusFilter.as_view(),name='status_filter'),
     path("login/",LoginUser.as_view(),name='login'),
     path('logout/',LogoutUser.as_view(),name='logout'),
-    path('token/',MyTokenObtainPairView.as_view(),name='get_token'),
-    path('token/refresh/',TokenRefreshView.as_view(),name='refresh_token'),
     path('register/',RegisterUser.as_view(),name='register_user'),
     path('personal_profile/<int:pk>',PersonalProfileView.as_view(),name='personal_profile'),
     path('employee_record/<int:pk>',PersonalWorkRecord.as_view(),name='employee_record'),
     path('employee_bank_details/<int:pk>',EmployeeBankDetail.as_view(),name='bank_detail'),
     path('task_record/',AllTaskRecord.as_view(),name='task_record'),
-    path('checkin_record/',AllCheckinRecord.as_view(),name='all_checkin_record'),
+    path('company_checkin_record/',AllCheckinRecord.as_view(),name='all_checkin_record'),
     path('register/<int:pk>',EditPersonalInfo.as_view(),name='edit_personal_info'),
+
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

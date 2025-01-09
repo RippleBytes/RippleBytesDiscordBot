@@ -10,7 +10,7 @@
         
         <tr>
             <th>Checkin id</th>
-            <th>Discord user id</th>
+            <th>User id</th>
             <th>Username</th>
             <th>Checkin time</th>
             <th>Checkout time</th>
@@ -20,7 +20,7 @@
             {% for data in checkin_record%}
             <tr>
                 <td>{{data.id}}</td>
-                <td>{{data.user_id}}</td>
+                <td>{{data.user}}</td>
                 <td>{{data.username}}</td>
                 <td>{{data.checkin_time}}</td>
                 <td>{{data.checkout_time}}</td>

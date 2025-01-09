@@ -69,7 +69,7 @@ UNFOLD = {
                 [
                     {
                         "title": _("Dashboard"), 
-                        "icon": "menu",  # Supported icon set: https://fonts.google.com/icons
+                        "icon": "menu",  
                         "link": reverse_lazy("admin:index"),
                         "permission": lambda request: request.user.is_superuser,
                     },
@@ -85,7 +85,7 @@ UNFOLD = {
                     {
                         "title": _("Users"), 
                         "icon": "person",
-                        "link": reverse_lazy("admin:auth_user_changelist"),
+                        "link": reverse_lazy("admin:bot_user_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
                     
@@ -107,7 +107,7 @@ UNFOLD = {
                     {
                         "title": _("Bank Details"), 
                         "icon": "savings",
-                        "link": reverse_lazy("admin:bot_bankdetails_changelist"),
+                        "link": reverse_lazy("admin:bot_bankdetail_changelist"),
                     },
                     {
                         "title": _("Break Record"), 
@@ -119,11 +119,7 @@ UNFOLD = {
                         "icon": "check",
                         "link": reverse_lazy("admin:bot_checkinrecord_changelist"),
                     },
-                    {
-                        "title": _("Employees"), 
-                        "icon": "badge",
-                        "link": reverse_lazy("admin:bot_employee_changelist"),
-                    },
+                    
                     {
                         "title": _("Leave request"), 
                         "icon": "waving_hand",
@@ -294,3 +290,5 @@ ADMIN_CHANNEL_ID=config('ADMIN_CHANNEL_ID')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DISCORD_WEBHOOK_URL=config('DISCORD_WEBHOOK_URL')
 REDIRECT_URL=config('REDIRECT_URL')
+
+AUTH_USER_MODEL='bot.User'
