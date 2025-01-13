@@ -95,36 +95,23 @@ class LeaveRequestStatus(Enum):
     def __str__(self):
         return self.value
     
-
-list=[]
 class CheckinModal(discord.ui.Modal, title="Check-in Tasks"):
     
-
-    # def __init__(self,user):
-    #     super().__init__()
-    #     self.user=user
-    #     user_object=get_object_or_404(User,discord_user_id=str(self.user.id))
-    #     task_record=get_list_or_404(TaskRecord,completed=False,user=user_object)
-    #     for task in task_record:
-    #         list.append(task)
-        
-        
     tasks = discord.ui.TextInput(
             style=discord.TextStyle.paragraph,
             label="Tasks (One per line)",
             required=True,
             placeholder="Enter your tasks here, one per line",
-            max_length=1500,
-            default="\n".join(list)
+            max_length=1500,  
         )
     
-    
+    def __init__(self, user):
+        super().__init__()
+        self.user = user
     
 
 
     async def on_submit(self, interaction: discord.Interaction):
-      
-        
         tasks_input = self.tasks.value.strip()
         tasks = tasks_input.splitlines()
 
@@ -146,7 +133,7 @@ class CheckinModal(discord.ui.Modal, title="Check-in Tasks"):
 
             embed = discord.Embed(
                 title="Checkin",
-                description=tasks.value,
+                description=self.tasks.value,
                 color=discord.Color.green()
             )
             embed.set_author(name=self.user.name)
@@ -245,7 +232,7 @@ class CheckoutModal(discord.ui.Modal, title="Checkout"):
             for task in completed_tasks:
                 await TaskRecord.objects.filter(
                     checkin=self.checkin_record,task__iexact=task.strip()
-                ).aupdate(completed=True)
+                ).aupdate(completed=True,show=False)
 
             # Add additional tasks as completed
             
@@ -358,7 +345,7 @@ class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
                             
                             embed.set_author(name=self.user.name)
                             embed.add_field(name='Leave request starting from' , value=leave_request.start_date,inline=False)
-                            embed.add_field(name='Leave request till',value=leave_request.end_date)
+                            embed.add_field(name='Leave request end',value=leave_request.end_date)
                             embed.add_field(name="No. of Leave Days :",value=(leave_request.end_date-leave_request.start_date).days,inline=False)
 
                             
@@ -490,8 +477,17 @@ class Command(BaseCommand):
                         ephemeral=True
                     )
             else:
-                    modal = CheckinModal(interaction.user)
-                    await interaction.response.send_modal(modal)
+                incomplete_tasks = []
+                modal = CheckinModal(interaction.user)
+                async for task in TaskRecord.objects.filter(user=user_object,completed=False,show=True):
+                    await TaskRecord.objects.filter(
+                    user=user_object
+                ).aupdate(show=False)
+
+                    incomplete_tasks.append(task.task)
+                    
+                modal.tasks.default = f"\n".join(incomplete_tasks)
+                await interaction.response.send_modal(modal)
         
 
         #create slash commands
@@ -538,11 +534,17 @@ class Command(BaseCommand):
 
         @bot.tree.command(name="take_break", description="Start a break by providing a reason.")
         async def take_break(interaction: discord.Interaction):
-
-            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
-            checkin_record = await CheckinRecord.objects.filter(
+            try:
+                user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
+                checkin_record = await CheckinRecord.objects.filter(
                 user=user_object, checkout_time__isnull=True
-            ).afirst()
+                ).afirst()
+            except:
+                await interaction.response.send_message(
+                    "Please register using discord first",
+                    ephemeral=True
+                )
+
             if not checkin_record:
                 await interaction.response.send_message(
                     "❌ You must check in before taking a break!",
@@ -564,10 +566,16 @@ class Command(BaseCommand):
 
         @bot.tree.command(name="end_break", description="End your current break.")
         async def end_break_cmd(interaction: discord.Interaction):
-            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
-            checkin_record = await CheckinRecord.objects.filter(
-                user=user_object, checkout_time__isnull=True
-            ).afirst()
+            try:
+                user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
+                checkin_record = await CheckinRecord.objects.filter(
+                    user=user_object, checkout_time__isnull=True
+                ).afirst()
+            except:
+                await interaction.response.send_message(
+                    "Please register using discord first",
+                    ephemeral=True
+                )
             if not checkin_record:
                 await interaction.response.send_message(
                     "❌ You must check in before ending a break!",
