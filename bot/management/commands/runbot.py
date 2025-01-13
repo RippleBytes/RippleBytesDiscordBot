@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 from bot.models import CheckinRecord, TaskRecord, BreakRecord,LeaveRequest,LateArrival,User
 from django.utils.timezone import now
 from django.db import transaction
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404,get_list_or_404
 from asgiref.sync import sync_to_async
 import traceback
 from datetime import datetime
@@ -12,6 +12,8 @@ from enum import Enum
 import pytz
 from django.conf import settings
 import re
+import asyncio
+
 
 DISCORD_TOKEN = settings.DISCORD_TOKEN
 ADMIN_CHANNEL_ID=settings.ADMIN_CHANNEL_ID
@@ -94,43 +96,57 @@ class LeaveRequestStatus(Enum):
         return self.value
     
 
-
+list=[]
 class CheckinModal(discord.ui.Modal, title="Check-in Tasks"):
-    tasks = discord.ui.TextInput(
-        style=discord.TextStyle.paragraph,
-        label="Tasks (One per line)",
-        required=True,
-        placeholder="Enter your tasks here, one per line",
-        max_length=1500,
-    )
+    
 
-    def __init__(self, user):
-        super().__init__()
-        self.user = user
+    # def __init__(self,user):
+    #     super().__init__()
+    #     self.user=user
+    #     user_object=get_object_or_404(User,discord_user_id=str(self.user.id))
+    #     task_record=get_list_or_404(TaskRecord,completed=False,user=user_object)
+    #     for task in task_record:
+    #         list.append(task)
+        
+        
+    tasks = discord.ui.TextInput(
+            style=discord.TextStyle.paragraph,
+            label="Tasks (One per line)",
+            required=True,
+            placeholder="Enter your tasks here, one per line",
+            max_length=1500,
+            default="\n".join(list)
+        )
+    
+    
+    
+
 
     async def on_submit(self, interaction: discord.Interaction):
+      
+        
         tasks_input = self.tasks.value.strip()
         tasks = tasks_input.splitlines()
 
         # async with transaction.atomic():
         try:
             # Create CheckinRecord
-            user_object= await sync_to_async(get_object_or_404)(User,discord_user_id=str(self.user.id))
+            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
             checkin_record = await sync_to_async(CheckinRecord.objects.create)(
                 user=user_object,
                 username=self.user.name,
                 checkin_time=now()
             )
-
+        
             # Create TaskRecords
             task_records = [
-                TaskRecord(user=user_object,checkin=checkin_record, task=task.strip(),completed=False) for task in tasks if task.strip()
+                TaskRecord(user=user_object,checkin=checkin_record, task=task.strip()) for task in tasks if task.strip()
             ]
             await sync_to_async(TaskRecord.objects.bulk_create)(task_records)
 
             embed = discord.Embed(
                 title="Checkin",
-                description=self.tasks.value,
+                description=tasks.value,
                 color=discord.Color.green()
             )
             embed.set_author(name=self.user.name)
@@ -307,10 +323,6 @@ class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
     def __init__(self,user):
         super().__init__()
         self.user=user
-    
-    
-
-    
 
     async def on_submit(self, interaction:discord.Interaction):
         reason_input=self.reason.value.strip()
@@ -321,54 +333,55 @@ class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
         start_date=datetime.strptime(self.start_date.value,date_format).date()
         end_date=datetime.strptime(self.end_date.value,date_format).date()
         
-
-        if time_validation(start_date,end_date):
-                try:
-                        user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
-                        leave_request=await sync_to_async(LeaveRequest.objects.create)(
-                            user=user_object,
-                            username=self.user.name,
-                            reason=reason_input,
-                            leave_type=leave_type,
-                            start_date=start_date,
-                            end_date=end_date
-                        )
-
-                        embed=discord.Embed(
-                            title="Leave request initiated",
-                            color=discord.Color.orange(),
-                            description=reason_input
-                        )
-
-                        
-                        embed.set_author(name=self.user.name)
-                        embed.add_field(name='Leave request starting from' , value=leave_request.start_date,inline=False)
-                        embed.add_field(name='Leave request till',value=leave_request.end_date)
-                        embed.add_field(name="No. of Leave Days :",value=(leave_request.end_date-leave_request.start_date).days+1,inline=False)
-
-                        
-                        channel=interaction.guild.get_channel(int(ADMIN_CHANNEL_ID))
-                        #ADMIN_CHANNEL_ID needs to be converted into int, else return NONE
-                        
-                        await channel.send(embed=embed)
-
-                        
-                        await interaction.response.send_message(
-                            "✅ Leave request sent successfully!",ephemeral=True
-                        ) 
-                   
-                except Exception as e:
-                    
-                        traceback.print_exc()
-                        await interaction.response.send_message(
-                            "❌ Failed to initiate a request ! Please try again.",
-                            ephemeral=True
-                        )
+        if start_date==end_date:
+            await interaction.response.send_message("❌Failed to initiate a request ! Start date and end date cannot be the same",ephemeral=True)
         else:
-            await interaction.response.send_message(
-                "❌ Failed to initiate a request ! Please provide valid dates"
-            )
-                
+
+            if time_validation(start_date,end_date):
+                    try:
+                            user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
+                            leave_request=await sync_to_async(LeaveRequest.objects.create)(
+                                user=user_object,
+                                username=self.user.name,
+                                reason=reason_input,
+                                leave_type=leave_type,
+                                start_date=start_date,
+                                end_date=end_date
+                            )
+
+                            embed=discord.Embed(
+                                title="Leave request initiated",
+                                color=discord.Color.orange(),
+                                description=reason_input
+                            )
+
+                            
+                            embed.set_author(name=self.user.name)
+                            embed.add_field(name='Leave request starting from' , value=leave_request.start_date,inline=False)
+                            embed.add_field(name='Leave request till',value=leave_request.end_date)
+                            embed.add_field(name="No. of Leave Days :",value=(leave_request.end_date-leave_request.start_date).days,inline=False)
+
+                            
+                            channel=interaction.guild.get_channel(int(ADMIN_CHANNEL_ID))
+                            #ADMIN_CHANNEL_ID needs to be converted into int, else return NONE
+                        
+                            await channel.send(embed=embed)
+                            await interaction.response.send_message(
+                                "✅ Leave request sent successfully!",ephemeral=True
+                            ) 
+                    
+                    except Exception as e:
+                        
+                            traceback.print_exc()
+                            await interaction.response.send_message(
+                                "❌ Failed to initiate a request ! Please try again.",
+                                ephemeral=True
+                            )
+            else:
+                await interaction.response.send_message(
+                    "❌ Failed to initiate a request ! Please provide valid dates, check if dates exits, end date is greater than start date and the year!!"
+                )
+                    
 
 class LateArrivalModal(discord.ui.Modal,title='CheckinDelay'):
     reason_late_duration=discord.ui.TextInput(
@@ -404,16 +417,13 @@ class LateArrivalModal(discord.ui.Modal,title='CheckinDelay'):
         
         format_time_duration=late_arrival_time_addhour(float(time_duration))
 
-        
-
         try:
             user_object=await sync_to_async(get_object_or_404)(User,discord_user_id=str(interaction.user.id))
             if format_time_duration and valid_time_duration is not None:
                 late_arrival=await sync_to_async(LateArrival.objects.create)(
                     user=user_object,
                     reason=reason_late_duration,
-                    time_duration=str(format_time_duration) ,
-                    
+                    time_duration=str(format_time_duration) ,  
                 )
 
                 embed=discord.Embed(
@@ -425,8 +435,6 @@ class LateArrivalModal(discord.ui.Modal,title='CheckinDelay'):
                 embed.add_field(name="Time duration",value=late_arrival.time_duration)
                 
                 await interaction.channel.send(embed=embed)
-                
-
                 await interaction.response.send_message(
                     " ✅ Successfully posted in discord",
                     ephemeral=True
@@ -438,8 +446,6 @@ class LateArrivalModal(discord.ui.Modal,title='CheckinDelay'):
                 ephemeral=True
             )
 
-
-
         except Exception as e:
             traceback.print_exc()
             await interaction.response.send_message(
@@ -447,8 +453,6 @@ class LateArrivalModal(discord.ui.Modal,title='CheckinDelay'):
                 ephemeral=True
             )
 
-
-    
 
 class Command(BaseCommand):
     help = "Run the Discord bot"
@@ -458,16 +462,11 @@ class Command(BaseCommand):
         intents.message_content = True
         bot = commands.Bot(command_prefix="!", intents=intents)
     
-        
-
         @bot.event
         async def on_ready():
             self.stdout.write(self.style.SUCCESS(f'Logged in as {bot.user} (ID: {bot.user.id})'))
             await bot.tree.sync()
             self.stdout.write(self.style.SUCCESS("Bot is ready and commands are synced."))
-
-        
-
 
         
         @bot.tree.command(name="checkin", description="Start your check-in by entering your tasks.")
@@ -485,7 +484,6 @@ class Command(BaseCommand):
                     ephemeral=True
                 )
 
-            
             if existing_record:
                     await interaction.response.send_message(
                         "❌ You already have an active check-in! Please checkout first.",
@@ -497,7 +495,6 @@ class Command(BaseCommand):
         
 
         #create slash commands
-        
         @bot.tree.command(name='leave_request',description="Send a leave request to admin")
         async def take_leave(interaction:discord.Interaction):
             
@@ -510,16 +507,8 @@ class Command(BaseCommand):
                 )
 
             channel=bot.get_channel(ADMIN_CHANNEL_ID)
-        
-                
-            
-                
             modal=LeaveRequestModal(interaction.user)
             await interaction.response.send_modal(modal)
-            
-            
-                
-
 
         @bot.tree.command(name="checkout", description="Checkout by marking completed tasks and adding any additional tasks.")
         async def checkout(interaction: discord.Interaction):
@@ -650,7 +639,5 @@ class Command(BaseCommand):
                 modal=LateArrivalModal(interaction.user)
                 await interaction.response.send_modal(modal)
 
-       
-       
         # Run the bot
         bot.run(DISCORD_TOKEN)
