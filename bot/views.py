@@ -22,6 +22,11 @@ class LoginUser(View):
     permission_classes=[permissions.AllowAny]
 
     def get(self,request):
+        #if users mannually type /login the url redirect it to authenticated page 
+        if request.user.is_authenticated:
+            messages.success(request,'You already have an active login')
+            return redirect('admin_home')
+        #render the page for the first time
         return render(request,'admin_home.html')
 
     def post(self,request):
@@ -159,8 +164,9 @@ class PersonalWorkRecord(View):
         
             if leave_object:
                 leave_serializer=LeaveSerializer(leave_object,many=True)
-                task_object=TaskRecord.objects.filter(user=employee_object.id)
-                task_serializer=TaskSerializer(task_object,many=True)
+            
+            task_object=TaskRecord.objects.filter(user=employee_object.id)
+            task_serializer=TaskSerializer(task_object,many=True)
     
             if request.user ==employee_object:
                 return render(request,'employee_record.html',{'json_data': leave_serializer.data if leave_serializer else None,
@@ -257,7 +263,6 @@ class EditPersonalInfo(View):
     permission_classes=[permissions.IsAdminUser]
     authentication_classes=[JWTAuthentication]
     def get(self,request,pk):
-    
         try:
             user_object=get_object_or_404(User,id=pk)
             if request.user==user_object:

@@ -35,7 +35,7 @@ def leave_request_status_updated(sender,instance,created,**kwargs):
                                 
                                 {
                                     'name':'No of leave days',
-                                    'value':(instance.end_date-instance.start_date).days+1,
+                                    'value':(instance.end_date-instance.start_date).days,
                                     'inline': False
                                 }             
                             ],
