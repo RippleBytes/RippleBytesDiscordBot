@@ -1,30 +1,61 @@
-  <nav class="navbar navbar-expand-lg bg-body-tertiary">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="{% url 'admin_home'%}">RippleBytes</a>
+<style>
+  
+    .danger:hover {
+            background-color: rgb(156, 29, 29);
+            border-color: rgb(156, 29, 29);
+        }
+    .grey:hover{
+      background-color: rgb(94, 84, 84);
+            border-color: rgb(94, 84, 84);
+    }
+  
+</style>
+
+
+<nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color: #e3f2fd;">
+  <div class="container-fluid d-flex justify-content-between" style="width: 100vw;">
+      <a class="navbar-brand" href="{% url 'admin_home'%}">
+          <img src="https://ripplebytes.com/wp-content/uploads/2023/09/rb-light.png" alt="Ripplebytes"
+              width="150" height="50">
+      </a>
+       
       
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <ul class="navbar-nav mb-2 mb-lg-0">
           {%if user.is_authenticated and user.is_superuser%}
            
-            <li class="nav-item"><a href="{% url 'logout'%}" class="nav-link">Logout</a></li>
-            <li class="nav-item"><a href="{% url 'employee_leave'%}" class="nav-link">Leave record</a></li>
-            <li class="nav-item"><a href="{%url 'task_record'%}" class="nav-link">Task Record</a></li>
-            <li class="nav-item"><a href="{% url 'all_checkin_record'%}" class="nav-link">Checkin Record</a></li>
 
+            <a href="{%url 'logout'%}"><button class="btn btn-outline-primary danger ms-3" type="submit" >Logout</button></a>
+            <a href="{% url 'employee_leave'%}"><button class="btn btn-outline-primary grey  ms-3" type="submit">Leave </button></a>
+            <a href="{% url 'task_record'%}"><button class="btn btn-outline-primary grey  ms-3" type="submit">Task</button></a>
+            <a href="{% url 'all_checkin_record'%}"><button class="btn btn-outline-primary grey  ms-3" type="submit">Checkin</button></a>
+
+           
+        </ul>
           {%elif user.is_authenticated and not user.is_superuser%}
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">My profile</a>
-            <ul class="dropdown-menu tex">
-                <li><a class="dropdown-item" href="{% url 'personal_profile' user.id%}">Profile</a></li>        
-                <li><a class="dropdown-item nav-link" href="{% url 'logout'%}">Logout</a></li>
-            </ul>
-        </li>
+          
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="d-flex" role="search">
+              
+                  <div class="dropdown">
+                      <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                          aria-expanded="false">
+                          My profile
+                      </button>
+                      <ul class="dropdown-menu">
+                          <li><a class="dropdown-item" href="{% url 'personal_profile' user.id%}">Profile</a></li>
+                          
+                      </ul>
+                  </div>
+                  <a href="{% url 'logout'%}" ><button class="btn btn-outline-primary danger ms-3" type="submit">Logout</button></a>
+              
+          </div>
+      </div>
             
           {% else%}
-            <li class="nav-item"><a href="{% url 'admin_home'%}" class="nav-link">Login</a></li>
-            <li class="nav-item"><a href="{% url 'register_user'%}" class="nav-link">Register</a></li>
+          <a href="{%url 'login'%}"><button class="btn btn-primary" type="submit" >Login</button></a>
+          <a href="{% url 'register_user'%}"><button class="btn btn-outline-primary grey ms-3" type="submit">Register</button></a>
           {%endif%}
     
       </div>
-    </div>
+    
   </nav>

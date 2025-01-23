@@ -23,6 +23,7 @@ leave_status=[
     ]
 
 class User(AbstractUser):
+    email = models.EmailField(unique=True, blank=False, null=False)
     discord_user_id=models.CharField(blank=False,null=False,unique=True,default=11)
     job_title=models.CharField(max_length=200,blank=False,null=False,default='employee')
     phone_number=models.CharField(max_length=10,blank=False,unique=True,null=False,default=000000)

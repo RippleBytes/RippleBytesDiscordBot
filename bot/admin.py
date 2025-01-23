@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.models import User,Group
-from django.contrib.auth.admin import UserAdmin,GroupAdmin
+from django.contrib.auth.admin import GroupAdmin,UserAdmin
 from .models import CheckinRecord,TaskRecord,BreakRecord,LeaveRequest,BankDetail,User
 from import_export.admin import ImportExportModelAdmin
 from unfold.admin import ModelAdmin
@@ -12,28 +12,28 @@ from unfold.views import UnfoldModelAdminViewMixin
 from django.views.generic import TemplateView
 from unfold.decorators import action
 from django.utils.translation import gettext_lazy as _
-from .forms import RegistrationForm,CustomUserChangeForm
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken,OutstandingToken
+from django.utils.html import format_html
 
 admin.site.unregister(Group)
 admin.site.unregister(BlacklistedToken)
 admin.site.unregister(OutstandingToken)
 
 
-
 class TaskRecordInline(TabularInline):
     model=TaskRecord
     tab=True
+    extra=0
     fields=['task','completed']
     readonly_fields=('task','completed',)
 
 @admin.register(User)
-class CustomAdmin(ModelAdmin):
+class CustomAdmin(UserAdmin,ModelAdmin):
     fieldsets = [
         ('General', {
             'fields': [
                 'discord_user_id', 'username', 'job_title',
-                'date_of_birth', 'gender', 'last_login', 'phone_number',
+                'date_of_birth', 'gender', 'last_login', 'phone_number','password',
                 'email', 'private_email', 'employee_citizenship_number',
                 'employee_citizenship_photo', 'employee_pp_photo', 'employee_resume_pdf'
             ],
@@ -44,17 +44,19 @@ class CustomAdmin(ModelAdmin):
         (None, {
             "classes": ("wide",),
             "fields": (
-                "username", "email", "phone_number", "profile_picture", "bio", "password1", "password2", "is_staff",
-                "is_active", "groups", "user_permissions"
+                'discord_user_id', 'username', 'job_title',
+                'date_of_birth', 'gender', 'last_login', 'phone_number','password',
+                'email', 'private_email', 'employee_citizenship_number',
+                'employee_citizenship_photo', 'employee_pp_photo', 'employee_resume_pdf'
             )}
          ),
     )
+    form=UserChangeForm
+    add_form=UserCreationForm
+    change_password_form=AdminPasswordChangeForm
 
     inlines=[TaskRecordInline]
     readonly_fields=('discord_user_id','username','last_login')
-
-
-
 
 @admin.register(BlacklistedToken)
 class BlacklistedTokenAdmin(ModelAdmin):
@@ -68,9 +70,6 @@ class OutstandingTokenAdmin(ModelAdmin):
 class DjangoGroupAdmin(GroupAdmin,ModelAdmin):
     warn_unsaved_form=True
 
-
-    
-
 @admin.register(CheckinRecord)
 class CheckinRecordAdmin(ModelAdmin,ImportExportModelAdmin):
     
@@ -78,16 +77,12 @@ class CheckinRecordAdmin(ModelAdmin,ImportExportModelAdmin):
     import_form_class=ImportForm
     export_form_class=ExportForm
 
-   
-
-
-
-
+@admin.register(TaskRecord)
 class TaskRecordAdmin(ModelAdmin,ImportExportModelAdmin):
     list_display = ('user', 'task', 'completed')
     import_form_class=ImportForm
     export_form_class=ExportForm
-    
+
     list_filter=['completed']
     actions=['set_status_completed','set_status_incomplete']
     
@@ -99,12 +94,6 @@ class TaskRecordAdmin(ModelAdmin,ImportExportModelAdmin):
     @action(description="Change task status to incomplete")
     def set_status_incomplete(ModelAadmin,request,queryset):
         queryset.update(completed=False)
-
-
-
-admin.site.register(TaskRecord,TaskRecordAdmin)
-
-    
 
 @admin.register(BreakRecord)
 class BreakRecordAdmin(ModelAdmin,ImportExportModelAdmin):
@@ -143,9 +132,6 @@ class LeaveRequestAdmin(ModelAdmin,ImportExportModelAdmin):
      leave_days.short_description='No of leave days'
      
      
-        
-        
-
 @admin.register(BankDetail)
 class BankDetailRegisterAdmin(ModelAdmin,ImportExportModelAdmin):
     list_display=('user','bank_name','bank_branch_location','employee_bank_account_name','employee_bank_account_number')
