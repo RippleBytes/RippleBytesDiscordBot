@@ -1,12 +1,22 @@
 <style>
   
     .danger:hover {
-            background-color: rgb(156, 29, 29);
-            border-color: rgb(156, 29, 29);
-        }
-    .grey:hover{
-      background-color: rgb(94, 84, 84);
-            border-color: rgb(94, 84, 84);
+        background-color: rgb(156, 29, 29);
+        border-color: rgb(156, 29, 29);
+    }
+    .danger:active{
+        background-color: rgb(156, 29, 29);
+        border-color: rgb(156, 29, 29);
+
+    }
+    
+    .secondary:hover{
+        background-color: rgb(107, 15, 192) ;
+        border-color: rgb(107, 15, 192);
+    }
+    .secondary:active{
+        background-color: rgb(107, 15, 192) !important;
+        border-color: rgb(107, 15, 192) !important;
     }
   
 </style>
@@ -25,9 +35,9 @@
            
 
             <a href="{%url 'logout'%}"><button class="btn btn-outline-primary danger ms-3" type="submit" >Logout</button></a>
-            <a href="{% url 'employee_leave'%}"><button class="btn btn-outline-primary grey  ms-3" type="submit">Leave </button></a>
-            <a href="{% url 'task_record'%}"><button class="btn btn-outline-primary grey  ms-3" type="submit">Task</button></a>
-            <a href="{% url 'all_checkin_record'%}"><button class="btn btn-outline-primary grey  ms-3" type="submit">Checkin</button></a>
+            <a href="{% url 'employee_leave'%}"><button class="btn btn-outline-primary secondary  ms-3" type="submit">Leave </button></a>
+            <a href="{% url 'task_record'%}"><button class="btn btn-outline-primary secondary  ms-3" type="submit">Task</button></a>
+            <a href="{% url 'all_checkin_record'%}"><button class="btn btn-outline-primary secondary  ms-3" type="submit">Checkin</button></a>
 
            
         </ul>
@@ -53,7 +63,7 @@
             
           {% else%}
           <a href="{%url 'login'%}"><button class="btn btn-primary" type="submit" >Login</button></a>
-          <a href="{% url 'register_user'%}"><button class="btn btn-outline-primary grey ms-3" type="submit">Register</button></a>
+          <a href="{% url 'register_user'%}"><button class="btn btn-outline-primary secondary ms-3" type="submit">Register</button></a>
           {%endif%}
     
       </div>
