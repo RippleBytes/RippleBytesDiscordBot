@@ -164,7 +164,7 @@ class PersonalWorkRecord(View):
         
             if leave_object:
                 leave_serializer=LeaveSerializer(leave_object,many=True)
-            
+
             task_object=TaskRecord.objects.filter(user=employee_object.id)
             task_serializer=TaskSerializer(task_object,many=True)
     
