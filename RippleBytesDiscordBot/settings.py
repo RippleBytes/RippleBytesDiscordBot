@@ -60,7 +60,7 @@ INSTALLED_APPS = [
 UNFOLD = {
     "SITE_TITLE": "RippleBytes",
     "SITE_HEADER": "RippleBytes",
-     "SIDEBAR": {
+    "SIDEBAR": {
         "show_search": False,  # Search in applications and models names
         "show_all_applications": False,  # Dropdown with all applications and models
         "navigation": [
