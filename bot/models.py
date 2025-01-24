@@ -78,6 +78,7 @@ class TaskRecord(models.Model):
     checkin=models.ForeignKey(CheckinRecord, related_name='tasks',on_delete=models.CASCADE)
     task = models.TextField()
     completed = models.BooleanField(default=False)
+    show=models.BooleanField(default=True)
 
     def __str__(self):
         return f"Task: {self.task} - Completed: {self.completed}"
@@ -105,7 +106,7 @@ class LeaveRequest(models.Model):
     
 
     def __str__(self):
-        return f'{self.username}{self.reason}'
+        return f'{self.username},Reason:{self.reason}'
     
 
 
