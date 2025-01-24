@@ -290,8 +290,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DISCORD_TOKEN=config('DISCORD_TOKEN')
-LEAVE_CHANNEL_ID=config('LEAVE_CHANNEL_ID')
-ADMIN_CHANNEL_ID=config('ADMIN_CHANNEL_ID')
+
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DISCORD_WEBHOOK_URL=config('DISCORD_WEBHOOK_URL')

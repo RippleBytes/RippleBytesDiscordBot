@@ -16,8 +16,6 @@ import asyncio
 
 
 DISCORD_TOKEN = settings.DISCORD_TOKEN
-ADMIN_CHANNEL_ID=settings.ADMIN_CHANNEL_ID
-LEAVE_CHANNEL_ID=settings.LEAVE_CHANNEL_ID
 REDIRECT_URL=settings.REDIRECT_URL
 
 
@@ -342,17 +340,6 @@ class LeaveRequestModal(discord.ui.Modal,title='LeaveRequest'):
                                 description=reason_input
                             )
 
-                            
-                            embed.set_author(name=self.user.name)
-                            embed.add_field(name='Leave request starting from' , value=leave_request.start_date,inline=False)
-                            embed.add_field(name='Leave request end',value=leave_request.end_date)
-                            embed.add_field(name="No. of Leave Days :",value=(leave_request.end_date-leave_request.start_date).days,inline=False)
-
-                            
-                            channel=interaction.guild.get_channel(int(ADMIN_CHANNEL_ID))
-                            #ADMIN_CHANNEL_ID needs to be converted into int, else return NONE
-                        
-                            await channel.send(embed=embed)
                             await interaction.response.send_message(
                                 "✅ Leave request sent successfully!",ephemeral=True
                             ) 
@@ -502,7 +489,7 @@ class Command(BaseCommand):
                     ephemeral=True
                 )
 
-            channel=bot.get_channel(ADMIN_CHANNEL_ID)
+            
             modal=LeaveRequestModal(interaction.user)
             await interaction.response.send_modal(modal)
 

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('bot', '0002_alter_taskrecord_checkin_alter_taskrecord_user'),
+        ('bot', '0002_taskrecord_show_alter_taskrecord_checkin_and_more'),
     ]
 
     operations = [
