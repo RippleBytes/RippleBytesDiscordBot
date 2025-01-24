@@ -202,6 +202,8 @@ class EmployeeBankDetail(View):
                 return render(request,'bank_detail_form.html',{'form':form}) 
             if request.user ==bank_detail_object.user:
                 form=EmployeeBankDetailForm(instance=bank_detail_object)
+                pan_card_photo=form.fields['employee_pan_photo']
+                pan_card_photo.widget=pan_card_photo.hidden_widget()
                 return render(request,'bank_detail_form.html',{'form':form})
             else:
                 messages.success(request,'Unauthorized access')
