@@ -97,7 +97,7 @@ class RegistrationForm(UserCreationForm):
     email=forms.EmailField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'abc@ripplebytes.com','name':'email'}))
     first_name=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'John','name':'first_name'}))
     last_name=forms.CharField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'Doe','name':'last_name'}))
-    discord_user_id=forms.CharField(max_length=18,label="Discord User Id",widget=forms.widgets.TextInput(attrs={'class':'form-control','name':'discord_user_id'}))
+    discord_user_id=forms.CharField(max_length=20,label="Discord User Id",widget=forms.widgets.TextInput(attrs={'class':'form-control','name':'discord_user_id'}))
     private_email=forms.EmailField(max_length=100,widget=forms.widgets.TextInput(attrs={'class':'form-control','placeholder':'abc@gmail.com','name':'private_email'}))
     
     password1=forms.CharField(required=True,label='Password',help_text = 'heklo',widget=forms.widgets.PasswordInput(attrs={'class':'form-control'}))
